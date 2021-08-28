@@ -33,7 +33,7 @@ YOUTUBE_API_TOKEN = <youtube api token>
 ERROR_CHANNEL = <channel id to report errors>
 ```
 1. Create a virtual environment and run `pip install -r requirements.txt` to install all the necessary dependencies for the bot.
-1.Run the bot using `python main.py`. The bot should now be running and will automatically create tables in the database if everything was configured correctly.
+1. Run the bot using `python main.py`. The bot should now be running and will automatically create tables in the database if everything was configured correctly.
 
 
 *If you invited the bot to a server before running the bot, it will cause errors, make sure to invite the bot only after you ran it so that it can make necessary entries in the database.*
