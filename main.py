@@ -42,14 +42,6 @@ class MartinGarrixBot(commands.Bot):
                          case_insensetive=True,
                          **kwargs)
 
-        self.modlogs_channel = self.get_channel(id=bot_config.MODLOGS_CHANNEL) if bot_config.MODLOGS_CHANNEL is not None else None
-        self.leave_join_logs_channel = self.get_channel(id=bot_config.LEAVE_JOIN_LOGS_CHANNEL) if bot_config.LEAVE_JOIN_LOGS_CHANNEL is not None else None
-        self.youtube_notifications_channel = self.get_channel(id=bot_config.YOUTUBE_NOTIFICATION_CHANNEL) if bot_config.YOUTUBE_NOTIFICATION_CHANNEL is not None else None
-        self.reddit_notifications_channel = self.get_channel(id=bot_config.REDDIT_NOTIFICATION_CHANNEL) if bot_config.REDDIT_NOTIFICATION_CHANNEL is not None else None
-        self.welcomes_channel = self.get_channel(id=bot_config.WELCOMES_CHANNEL) if bot_config.WELCOMES_CHANNEL is not None else None
-        self.delete_logs_channel = self.get_channel(id=bot_config.DELETE_LOGS_CHANNEL) if bot_config.DELETE_LOGS_CHANNEL is not None else None
-        self.edit_logs_channel = self.get_channel(bot_config.EDIT_LOGS_CHANNEL) if bot_config.EDIT_LOGS_CHANNEL is not None else None
-        self.xp_multiplier = bot_config.XP_MULTIPLIER
         self.start_time = datetime.datetime.utcnow()
         self.db = None
         # self.clean_text = commands.clean_content(escape_markdown=True, fix_channel_mentions=True)
@@ -70,6 +62,16 @@ class MartinGarrixBot(commands.Bot):
         await self.db.execute(queries)
 
     async def on_ready(self):
+
+        self.modlogs_channel = self.get_channel(id=bot_config.MODLOGS_CHANNEL) if bot_config.MODLOGS_CHANNEL is not None else None
+        self.leave_join_logs_channel = self.get_channel(id=bot_config.LEAVE_JOIN_LOGS_CHANNEL) if bot_config.LEAVE_JOIN_LOGS_CHANNEL is not None else None
+        self.youtube_notifications_channel = self.get_channel(id=bot_config.YOUTUBE_NOTIFICATION_CHANNEL) if bot_config.YOUTUBE_NOTIFICATION_CHANNEL is not None else None
+        self.reddit_notifications_channel = self.get_channel(id=bot_config.REDDIT_NOTIFICATION_CHANNEL) if bot_config.REDDIT_NOTIFICATION_CHANNEL is not None else None
+        self.welcomes_channel = self.get_channel(id=bot_config.WELCOMES_CHANNEL) if bot_config.WELCOMES_CHANNEL is not None else None
+        self.delete_logs_channel = self.get_channel(id=bot_config.DELETE_LOGS_CHANNEL) if bot_config.DELETE_LOGS_CHANNEL is not None else None
+        self.edit_logs_channel = self.get_channel(bot_config.EDIT_LOGS_CHANNEL) if bot_config.EDIT_LOGS_CHANNEL is not None else None
+        self.xp_multiplier = bot_config.XP_MULTIPLIER
+
         for ext in cogs:
             try:
                 self.load_extension(ext)
@@ -146,6 +148,7 @@ class MartinGarrixBot(commands.Bot):
         if message_before.author.bot or message_after.author.bot: return
 
         await Message.on_message(bot=self,message=message_after, xp_multiplier=self.xp_multiplier)
+        print(self.edit_logs_channel)
         if self.edit_logs_channel is not None:
             embed = discord.Embed(
                 description=f"Message edited by {message_before.author.mention} in {message_before.channel.mention}",
