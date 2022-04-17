@@ -38,17 +38,13 @@ class Notifications(commands.Cog):
                     embed.set_image(url=post.preview['images'][0]['source']['url'])
             except:
                 pass
+
             embed.set_footer(
                 text=f"Author: u/{post.author} on Subreddit {post.subreddit_name_prefixed}")
-            query = "SELECT reddit_notifications_channel FROM guild_configs WHERE reddit_notifications_channel IS NOT NULL"
-            channels = await self.bot.db.fetch(query)
-            for channel in channels:
-                reddit_channel = self.bot.get_channel(channel['reddit_notifications_channel'])
-                try:
-                    await reddit_channel.send(embed=embed)
-                except Exception as e:
-                    print(print(channel))
-                await asyncio.sleep(2)
+            reddit_channel = self.bot.reddit_notifications_channel
+
+            return await reddit_channel.send(embed=embed)
+
 
 
     @tasks.loop(minutes=3)
@@ -63,15 +59,11 @@ class Notifications(commands.Cog):
                 await self.bot.db.execute("INSERT INTO youtube_videos(video_id) VALUES  ($1)", video_id)
             except:
                 continue
-            query = "SELECT youtube_notifications_channel FROM guild_configs WHERE youtube_notifications_channel IS NOT NULL"
-            channels = await self.bot.db.fetch(query)
-            for channel in channels:
-                youtube_notification_channel = self.bot.get_channel(channel['youtube_notifications_channel'])
-                try:
-                    await youtube_notification_channel.send('https://www.youtube.com/watch?v=' + video_id)
-                except:
-                    pass
-                await asyncio.sleep(2)
+            youtube_notification_channel = self.bot.youtube_notifications_channel
+            try:
+                await youtube_notification_channel.send('https://www.youtube.com/watch?v=' + video_id)
+            except:
+                pass
 
 
 def setup(bot):

@@ -27,14 +27,12 @@ class Levelling(commands.Cog):
             img_data = BytesIO(await pfp.read())
             loop = asyncio.get_event_loop()
             query_guild = f"""
-                          WITH ordered_users AS (
-                          SELECT
-                            id,
-                            ROW_NUMBER() OVER (ORDER BY total_xp DESC) rank
-                          FROM users)
-                          SELECT rank FROM ordered_users WHERE ordered_users.id = $1;
+                        SELECT
+                        total_xp,
+                        ROW_NUMBER() OVER (ORDER BY total_xp DESC) rank
+                        FROM users WHERE users.id = $1 AND users.guild_id = $2;
                         """
-            record = await self.bot.db.fetchrow(query_guild, member.id)
+            record = await self.bot.db.fetchrow(query_guild, member.id, member.guild.id)
             rank = record['rank']
             image = await loop.run_in_executor(None, rank_picture, user, str(member), rank, img_data)
             await ctx.send(file=discord.File(filename="rank.png", fp=image))
@@ -58,7 +56,7 @@ class Levelling(commands.Cog):
             lb_name = "Coins"
             lb = []
             for record in records:
-                member = ctx.guilf.get_member(record['id'])
+                member = ctx.guild.get_member(record['id'])
                 if member is None:
                     continue
                 lb.append([member,record['garrix_coins']])
@@ -69,7 +67,7 @@ class Levelling(commands.Cog):
             lb_name = "Levels"
             lb = []
             for record in records:
-                member = ctx.guilf.get_member(record['id'])
+                member = ctx.guild.get_member(record['id'])
                 if member is None:
                     continue
                 lb.append([member,get_user_level_data(record['total_xp'])['lvl']])

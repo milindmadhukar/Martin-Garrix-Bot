@@ -50,9 +50,9 @@ class Stocks(commands.Cog):
         self.bot = bot
 
     @commands.command()
-    async def stock(self, ctx, stock, index):
+    async def stock(self, ctx, query):
         data = {}
-        async with request('GET', f'{url}stocks/{stock}:{index}' ) as resp:
+        async with request('GET', f'{url}stocks/{query}' ) as resp:
             try:
                 data = await resp.json()
             except:
@@ -63,17 +63,17 @@ class Stocks(commands.Cog):
         elif data['change'] >= 0:
             color=Colour.green()
             emote='🟢'
-        em = Embed(title=str(data['stock_name']), color=color)
-        em.add_field(name='Current Value: ', value=str(data['price']) + '   ' + emote+ '  ({}%)'.format(data['changepercent']), inline=False)
-        em.add_field(name='Previous Close: ', value=str(data['previous_close']), inline=False)
-        if data['day_range']:
-            em.add_field(name='Day Range: ', value=data['day_range'], inline=False)
-        if data['year_range']:
-            em.add_field(name='Year Range: ', value=data['year_range'], inline=False)
-        if data['market_cap']:
-            em.add_field(name='Market Cap: ', value=data['market_cap'], inline=False)
-        if data['primary_exchange']:
-            em.add_field(name='Primary Exchange: ', value=data['primary_exchange'], inline=False)
+        em = Embed(title=str(data['stockName']), color=color)
+        em.add_field(name='Current Value: ', value=str(data['price']) + '   ' + emote+ '  ({}%)'.format(data['changePercent']), inline=False)
+        em.add_field(name='Previous Close: ', value=str(data['previousClose']), inline=False)
+        if data.get('dayRange') is not None:
+            em.add_field(name='Day Range: ', value=data['dayRange'], inline=False)
+        if data.get('yearRange') is not None:
+            em.add_field(name='Year Range: ', value=data['yearRange'], inline=False)
+        if data.get('marketCap') is not None:
+            em.add_field(name='Market Cap: ', value=data['marketCap'], inline=False)
+        if data.get('primaryExchange') is not None:
+            em.add_field(name='Primary Exchange: ', value=data['primaryExchange'], inline=False)
         await ctx.send(embed=em)
         
     # @commands.command()

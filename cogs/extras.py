@@ -121,6 +121,7 @@ class Extras(commands.Cog):
         return await ctx.send(embed=embed)
 
     @commands.command(help="Send a message in a channel.", aliases=['send'])
+    @commands.has_permissions(administrator=True)
     async def say(self, ctx, channel: discord.TextChannel = None, *, message: str = None):
         if channel is None:
             channel = ctx.channel
@@ -134,38 +135,38 @@ class Extras(commands.Cog):
                 return
         return await ctx.send(message)
 
-    @commands.has_permissions(administrator=True)
-    @commands.command(help="Start the youtube together feature for a particular voice channel.", aliases=['watch', 'yt'])
-    async def youtube(self, ctx, voice_channel: discord.VoiceChannel):
-        await ctx.message.delete()
-        async with request('POST',
-                           f"https://discord.com/api/v8/channels/{voice_channel.id}/invites",
-                           headers={
-                               "Authorization": f"Bot {self.bot.http.token}",
-                               "Content-Type": "application/json"
-                           },
-                           json={
-                               "max_age": 3600,
-                               "max_uses": 0,
-                               "target_application_id": "755600276941176913",
-                               "target_type": 2,
-                               "temporary": False,
-                               "validate": None
-                           }) as response:
-            if response.status == 200:
-                response = await response.json()
-                invite = f"https://discord.gg/{response['code']}"
-                try:
-                    embed = discord.Embed(title="Click on me to join the VC and start youtube.", url=invite,
-                                          colour=discord.Colour.red())
-                    await ctx.author.send(embed=embed)
-                    return await ctx.send(embed=await success_embed("DMed you the invite link successfully."),
-                                          delete_after=10)
-                except:
-                    return await ctx.send(
-                        embed=failure_embed(title="Could not DM you. Please open your DMs and retry."), delete_after=10)
-            else:
-                return await ctx.send(embed=await failure_embed(title="Some error occured."), delete_after=10)
+    # @commands.has_permissions(administrator=True)
+    # @commands.command(help="Start the youtube together feature for a particular voice channel.", aliases=['watch', 'yt'])
+    # async def youtube(self, ctx, voice_channel: discord.VoiceChannel):
+    #     await ctx.message.delete()
+    #     async with request('POST',
+    #                        f"https://discord.com/api/v8/channels/{voice_channel.id}/invites",
+    #                        headers={
+    #                            "Authorization": f"Bot {self.bot.http.token}",
+    #                            "Content-Type": "application/json"
+    #                        },
+    #                        json={
+    #                            "max_age": 3600,
+    #                            "max_uses": 0,
+    #                            "target_application_id": "755600276941176913",
+    #                            "target_type": 2,
+    #                            "temporary": False,
+    #                            "validate": None
+    #                        }) as response:
+    #         if response.status == 200:
+    #             response = await response.json()
+    #             invite = f"https://discord.gg/{response['code']}"
+    #             try:
+    #                 embed = discord.Embed(title="Click on me to join the VC and start youtube.", url=invite,
+    #                                       colour=discord.Colour.red())
+    #                 await ctx.author.send(embed=embed)
+    #                 return await ctx.send(embed=await success_embed("DMed you the invite link successfully."),
+    #                                       delete_after=10)
+    #             except:
+    #                 return await ctx.send(
+    #                     embed=failure_embed(title="Could not DM you. Please open your DMs and retry."), delete_after=10)
+    #         else:
+    #             return await ctx.send(embed=await failure_embed(title="Some error occured."), delete_after=10)
 
     @commands.command(help="Gives you the info of the current server.")
     async def serverinfo(self, ctx):
@@ -200,7 +201,7 @@ class Extras(commands.Cog):
         embed = discord.Embed(title=f'{bot.user.name}!',
                               description= "A multipurpose bot created exclusively for Garrixers.",
                               colour=discord.Colour.blurple())
-        embed.add_field(name="Creator", value=f"{milind} - [My Website](https://milindm.me)", inline=False)
+        embed.add_field(name="Creator", value=f"{milind}", inline=False)
         embed.add_field(name="Total Users", value=users, inline=False)
         embed.add_field(name="Created At", value=bot.user.created_at.strftime("%b %d %Y, %H:%M:%S"))
         embed.add_field(name="Bot Server Info", value=f"**Platform:** {platform_details}\n\n**CPU Usage:** {cpu_usage}\n**Ram Usage:** {ram_usage}", inline=False)

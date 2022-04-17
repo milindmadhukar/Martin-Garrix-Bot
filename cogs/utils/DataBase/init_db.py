@@ -1,23 +1,3 @@
-guild_configs = """CREATE TABLE IF NOT EXISTS guild_configs(
-    guild_id BIGINT NOT NULL UNIQUE,
-    xp_multiplier INTEGER DEFAULT 1,
-    muted_role BIGINT,
-    modlogs_channel BIGINT,
-    leave_join_logs_channel BIGINT,
-    reddit_notifications_channel BIGINT,
-    youtube_notifications_channel BIGINT,
-    welcomes_channel BIGINT,
-    edit_logs_channel BIGINT,
-    delete_logs_channel BIGINT,
-    xp_disabled_channels BIGINT[]
-)"""
-
-guilds = """CREATE TABLE IF NOT EXISTS guilds (
-    id BIGINT NOT NULL UNIQUE,
-    name VARCHAR(120) NOT NULL,
-    owner_id BIGINT NOT NULL
-)"""
-
 modlogs = """CREATE TABLE IF NOT EXISTS modlogs(
     id BIGSERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL,

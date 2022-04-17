@@ -47,7 +47,6 @@ class TagCommands(commands.Cog, name="Tags"):
         """Create a new tag."""
         name = await commands.clean_content().convert(ctx=ctx, argument=name)
         content = await commands.clean_content().convert(ctx=ctx, argument=content)
-        user_id = ctx.author.id
 
         tag = await self.bot.db.get_tag(guild_id=ctx.guild.id, name=name)
         if tag is not None:

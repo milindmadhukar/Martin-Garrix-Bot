@@ -30,8 +30,8 @@ class Fun(commands.Cog):
 
 
     @commands.command(help="Lyrics quiz on various difficulties of Martin Garrix, Area 21, GRX and YTRAM songs.")
-    @commands.cooldown(1, 10*60 , commands.BucketType.user)
-    async def quiz(self, ctx, difficulty: lambda inp: inp.lower() =None):
+    @commands.cooldown(1, 3*60 , commands.BucketType.user)
+    async def quiz(self, ctx, difficulty: lambda inp: inp.lower()=None):
         if difficulty == None or difficulty not in ['easy', 'medium', 'hard', 'extreme']:
             embed = discord.Embed(title="Please choose an appropriate difficulty level.", description="Your choices are:\n**easy** : 50 garrix coins\n**medium** : 100 garrix coins\n**hard** : 150 garrix coins\n**extreme** : 200 garrix coins", color=discord.Colour.teal())
             ctx.command.reset_cooldown(ctx)
@@ -51,11 +51,12 @@ class Fun(commands.Cog):
             end = len(lines) - 1 - difficulty_lines.get(difficulty, 3) // 2
         line_number = random.randint(start, end)
 
-        lyrics = "\n".join(lines[line_number:line_number + difficulty_lines.get(difficulty, 3)])
+        while lyrics == "":
+            lyrics = "\n".join(lines[line_number:line_number + difficulty_lines.get(difficulty, 3)])
 
-        embed = discord.Embed(title=f"Guess the song from the lyrics! ({difficulty.title()})", colour=discord.Colour.gold())
+        embed = discord.Embed(title=f"Guess the song from the lyrics! ({difficulty.title()})", description="Guess the song name within 45 seconds.", colour=discord.Colour.gold())
         embed.add_field(name="Lyrics", value=lyrics)
-        embed.set_footer(text="Guess the song name within 45 seconds.")
+        embed.set_footer(text=f"Game for {ctx.author.name}")
 
         await ctx.send(embed=embed)
 
@@ -88,7 +89,11 @@ class Fun(commands.Cog):
         if song['thumbnail_url'] is not None:
             embed.set_thumbnail(url = song['thumbnail_url'])
 
-        return await ctx.send(embed=embed)
+        try:
+            await ctx.send(embed=embed)
+        except:
+            ctx.command.reset_cooldown(ctx)
+            return await ctx.senc("Some error occurred, please try again.")
 
     @quiz.error
     async def quiz_error(self, ctx, error):

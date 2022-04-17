@@ -3,7 +3,6 @@ import asyncio
 
 from .message import Message
 from .tag import Tag
-from .guild_configuration import GuildConfig, Guild
 from .channel import Channel
 from .user import User
 
@@ -66,20 +65,6 @@ class DataBase(object):
         record = await self.fetchrow(query, channel_id)
         if record is not None:
             return Channel(bot=self.bot, **record)
-        return record
-
-    async def get_guild_config(self, guild_id: int):
-        query = """SELECT * FROM guild_configs WHERE guild_id = $1"""
-        record = await self.fetchrow(query, guild_id)
-        if record is not None:
-            return GuildConfig(bot=self.bot, **record)
-        return record
-
-    async def get_guild(self, guild_id: int):
-        query = """SELECT * FROM guilds WHERE guild_id = $1"""
-        record = await self.fetchrow(query, guild_id)
-        if record is not None:
-            return Guild(bot=self.bot, **record)
         return record
 
     async def add_mod_role(self, mod_role_id, guild_id):
