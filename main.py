@@ -145,7 +145,7 @@ class MartinGarrixBot(commands.Bot):
         if message_before.embeds or message_after.embeds: return
         if message_before.author.bot or message_after.author.bot: return
 
-        await Message.on_message(bot=self,message=message_after)
+        await Message.on_message(bot=self,message=message_after, xp_multiplier=self.xp_multiplier)
         if self.edit_logs_channel is not None:
             embed = discord.Embed(
                 description=f"Message edited by {message_before.author.mention} in {message_before.channel.mention}",
