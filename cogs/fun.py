@@ -102,6 +102,25 @@ class Fun(commands.Cog):
 
             return await ctx.send(embed=embed)
 
+    @commands.command(help="Check you account balance for Garrix coins", aliases=['bal'])
+    async def balance(self, ctx, member: discord.Member = None):
+        if member is None:
+            member = ctx.author
+        query = "SELECT in_hand, garrix_coins FROM users WHERE id = $1 AND guild_id = $2"
+        record = await self.bot.db.fetchrow(query, ctx.author.id, ctx.guild.id)
+        in_hand = record["in_hand"]
+        garrix_coins = record["garrix_coins"]
+        embed = discord.Embed(title="Garrix Bank", colour=discord.Colour.orange())
+        embed.add_field(name="In hand", value=in_hand, inline=True)
+        embed.add_field(name="In Garrix Bank", value=garrix_coins, inline=True)
+        embed.set_thumbnail(url=member.avatar_url_as(size=256))
+        # embed.set_footer(f"Balance of {member.name}")
+
+        return await ctx.send(embed=embed)
+
+
+
+
     
 def setup(bot):
     bot.add_cog(Fun(bot))

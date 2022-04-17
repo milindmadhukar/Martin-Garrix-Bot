@@ -42,6 +42,7 @@ users = """CREATE TABLE IF NOT EXISTS users (
     total_xp integer DEFAULT 0,
     last_xp_added timestamp without time zone,
     garrix_coins bigint DEFAULT 0,
+    in_hand bigint DEFAULT 0,
     CONSTRAINT unique_user UNIQUE(id, guild_id)
 )"""
 

@@ -8,6 +8,7 @@ class User(object):
                  messages_sent: int = 0,
                  total_xp: int = 0,
                  last_xp_added: datetime = None,
+                 in_hand: int = 0,
                  garrix_coins: int = 0):
         self.bot = bot
         self.id = id
@@ -15,6 +16,7 @@ class User(object):
         self.messages_sent = messages_sent
         self.total_xp = total_xp
         self.last_xp_added = last_xp_added
+        self.in_hand = in_hand
         self.garrix_coins = garrix_coins
 
     async def post(self) -> None:

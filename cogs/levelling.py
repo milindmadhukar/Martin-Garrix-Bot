@@ -28,7 +28,6 @@ class Levelling(commands.Cog):
             loop = asyncio.get_event_loop()
             query_guild = f"""
                         SELECT
-                        total_xp,
                         ROW_NUMBER() OVER (ORDER BY total_xp DESC) rank
                         FROM users WHERE users.id = $1 AND users.guild_id = $2;
                         """

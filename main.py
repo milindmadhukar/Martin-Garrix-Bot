@@ -148,7 +148,6 @@ class MartinGarrixBot(commands.Bot):
         if message_before.author.bot or message_after.author.bot: return
 
         await Message.on_message(bot=self,message=message_after, xp_multiplier=self.xp_multiplier)
-        print(self.edit_logs_channel)
         if self.edit_logs_channel is not None:
             embed = discord.Embed(
                 description=f"Message edited by {message_before.author.mention} in {message_before.channel.mention}",
@@ -203,6 +202,7 @@ class MartinGarrixBot(commands.Bot):
         return await message.delete(delay=20.0)
     
     async def handle_error(self, ctx, error) -> None:
+        print(error)
         error_channel = self.get_channel(int(os.environ.get("ERROR_CHANNEL")))
         trace = traceback.format_exception(
             type(error),
