@@ -21,7 +21,7 @@ class User(object):
         assure_exclusive = await self.bot.db.fetch(query, self.id)
         if len(assure_exclusive) == 0:
             query = """INSERT INTO users (id)
-                    VALUES ( $1, $2 )
+                    VALUES ( $1 )
                     ON CONFLICT DO NOTHING"""
             await self.bot.db.execute(query, self.id)
 

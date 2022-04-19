@@ -4,7 +4,9 @@ import random
 import asyncio
 from difflib import SequenceMatcher
 
-from .utils.custom_embeds import failure_embed
+from .utils.custom_embeds import failure_embed, success_embed
+from .utils.parser import parse_amount
+
 
 class Fun(commands.Cog):
     def __init__(self, bot):
@@ -29,7 +31,7 @@ class Fun(commands.Cog):
 
 
     @commands.command(help="Lyrics quiz on various difficulties of Martin Garrix, Area 21, GRX and YTRAM songs.")
-    @commands.cooldown(1, 3*60 , commands.BucketType.user)
+    @commands.cooldown(1, 10*60 , commands.BucketType.user)
     async def quiz(self, ctx, difficulty: lambda inp: inp.lower()=None):
         if difficulty == None or difficulty not in ['easy', 'medium', 'hard', 'extreme']:
             embed = discord.Embed(title="Please choose an appropriate difficulty level.", description="Your choices are:\n**easy** : 50 garrix coins\n**medium** : 100 garrix coins\n**hard** : 150 garrix coins\n**extreme** : 200 garrix coins", color=discord.Colour.teal())
@@ -110,16 +112,83 @@ class Fun(commands.Cog):
         if member is None:
             member = ctx.author
         query = "SELECT in_hand, garrix_coins FROM users WHERE id = $1"
-        record = await self.bot.db.fetchrow(query, ctx.author.id)
+        record = await self.bot.db.fetchrow(query, member.id)
         in_hand = record["in_hand"]
         garrix_coins = record["garrix_coins"]
         embed = discord.Embed(title="Garrix Bank", colour=discord.Colour.orange())
-        embed.add_field(name="In hand", value=in_hand, inline=True)
-        embed.add_field(name="In Safe", value=garrix_coins, inline=True)
+        embed.add_field(name="In hand", value=in_hand)
+        embed.add_field(name="In Safe", value=garrix_coins)
         embed.set_thumbnail(url=member.avatar_url_as(size=256))
         # embed.set_footer(f"Balance of {member.name}")
 
         return await ctx.send(embed=embed)
+
+    @commands.cooldown(1, 6*60*60 , commands.BucketType.user)
+    @commands.command(help="Steal Garrix coins from another member")
+    async def rob(self, ctx, member: discord.Member):
+        if member.id == ctx.author.id:
+            return await ctx.send(embed=await failure_embed("You can't rob yourself."))
+
+        query = "SELECT in_hand FROM users WHERE id = $1"
+        record = await self.bot.db.fetchrow(query, member.id)
+        in_hand = record['in_hand']
+        if in_hand < 200:
+            return await ctx.send(embed=await failure_embed("Member needs to have atleast 200 Garrix to be robbed."))
+        is_going_to_be_robbed = random.choice([True, False, False, False, False])
+        # is_going_to_be_robbed = True
+        if is_going_to_be_robbed:
+            amount_robbed = random.randint(200, in_hand)
+            query = "UPDATE users SET in_hand = in_hand - $2 WHERE id = $1"
+            await self.bot.db.execute(query, member.id, amount_robbed)
+            query = "UPDATE users SET in_hand = in_hand + $2 WHERE id = $1"
+            await self.bot.db.execute(query, ctx.author.id, amount_robbed)
+            return await ctx.send(f"Successfully robbed {amount_robbed} Garrix coins from {member.mention}")
+        else:
+            query = "UPDATE users SET in_hand = in_hand - 200 WHERE id = $1"
+            await self.bot.db.execute(query, ctx.author.id)
+            return await ctx.message.reply("🚔 You have been caught stealing and lost 200 Garrix coins")
+
+
+    @commands.command(help="Withdraw Garrix coins from safe to hold in hand.", aliases=['with', 'wd'])
+    async def withdraw(self, ctx, amount:str):
+        query = "SELECT garrix_coins FROM users WHERE id = $1"
+        record = await self.bot.db.fetchrow(query, ctx.author.id)
+        garrix_coins = record['garrix_coins']
+        amt = parse_amount(amount, garrix_coins)
+        if amt > garrix_coins:
+            return await ctx.send(embed= await failure_embed(f"Not enough balance to withdraw {amt} Garrix coins."))
+        query = "UPDATE users SET in_hand = in_hand + $2, garrix_coins = garrix_coins - $2 WHERE id = $1"
+        await self.bot.db.execute(query, ctx.author.id, amt)
+        return await ctx.send(embed=await success_embed(f"Successfully withdrew {amount} coins."))
+
+    @commands.command(help="Deposit Garrix coins from hand to safe.", aliases=['depo', 'dep'])
+    async def deposit(self, ctx, amount:str):
+        query = "SELECT in_hand FROM users WHERE id = $1"
+        record = await self.bot.db.fetchrow(query, ctx.author.id)
+        in_hand = record['in_hand']
+        amt = parse_amount(amount, in_hand)
+        if amt > in_hand:
+            return await ctx.send(embed=await failure_embed("Can't deposit more than what you hold in your hand."))
+        query = "UPDATE users SET in_hand = in_hand - $2, garrix_coins = garrix_coins + $2 WHERE id = $1 "
+        await self.bot.db.execute(query, ctx.author.id, amt)
+        return await ctx.send(embed=await success_embed(f"Successfully deposited {amount} coins."))
+
+    @commands.command(help="Give Garrix coins to a member.")
+    async def give(self, ctx, member:discord.Member, amount: str):
+        query = "SELECT in_hand FROM users WHERE id = $1"
+        record = await self.bot.db.fetchrow(query, ctx.author.id)
+        if record is None:
+            print("No such user?")
+            return
+        in_hand = record['in_hand']
+        amt = parse_amount(amount, in_hand)
+        if amt > in_hand:
+            return await ctx.send(embed=await failure_embed("Can't give more than what you hold in your hand. Try withdrawing if you have the balance"))
+        query = "UPDATE users SET in_hand = in_hand + $2 WHERE id = $1"
+        await self.bot.db.execute(query, member.id, amt)
+        query = "UPDATE users SET in_hand = in_hand - $2 WHERE id = $1"
+        await self.bot.db.execute(query, ctx.author.id, amt)
+        return await ctx.send(embed=await success_embed(f"Successfully gave {amount} coins to {member.display_name}."))
 
 
 def setup(bot):
