@@ -127,12 +127,15 @@ class Fun(commands.Cog):
     @commands.command(help="Steal Garrix coins from another member")
     async def rob(self, ctx, member: discord.Member):
         if member.id == ctx.author.id:
+
+            ctx.command.reset_cooldown(ctx)
             return await ctx.send(embed=await failure_embed("You can't rob yourself."))
 
         query = "SELECT in_hand FROM users WHERE id = $1"
         record = await self.bot.db.fetchrow(query, member.id)
         in_hand = record['in_hand']
         if in_hand < 200:
+            ctx.command.reset_cooldown(ctx)
             return await ctx.send(embed=await failure_embed("Member needs to have atleast 200 Garrix to be robbed."))
         is_going_to_be_robbed = random.choice([True, False, False, False, False])
         # is_going_to_be_robbed = True
@@ -147,6 +150,15 @@ class Fun(commands.Cog):
             query = "UPDATE users SET in_hand = in_hand - 200 WHERE id = $1"
             await self.bot.db.execute(query, ctx.author.id)
             return await ctx.message.reply("🚔 You have been caught stealing and lost 200 Garrix coins")
+
+
+    @rob.error
+    async def rob_error(self, ctx, error):
+        if isinstance(error, commands.CommandOnCooldown):
+            embed = discord.Embed(title="You are currently on cooldown.", description=f" Woah theif, you can only rob once in 6 hours.\nTry again in {int(error.retry_after)} seconds", color=discord.Colour.red())
+            return await ctx.send(embed=embed)
+        else:
+            print(error)
 
 
     @commands.command(help="Withdraw Garrix coins from safe to hold in hand.", aliases=['with', 'wd'])
