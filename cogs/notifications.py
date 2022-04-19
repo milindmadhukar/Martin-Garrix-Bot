@@ -3,7 +3,8 @@ from discord.ext import commands, tasks
 import asyncio
 import os
 
-from .  utils.notification import latestYtVid
+from asyncpg import IntegrityConstraintViolationError
+
 import asyncpraw
 from googleapiclient.discovery import build
 
@@ -26,8 +27,13 @@ class Notifications(commands.Cog):
             async for post in new_post:
                 try:
                     await self.bot.db.execute("INSERT INTO reddit_posts(post_id) VALUES ($1)", post.id)
-                except:
+                except IntegrityConstraintViolationError:
                     continue
+                except Exception as e:
+                    print(e)
+                    return
+                    # TODO: Send to error channel
+
                 embed = discord.Embed(title=post.title,
                                       url=f"https://reddit.com{post.permalink}",
                                       color=discord.Color.orange())
@@ -43,9 +49,10 @@ class Notifications(commands.Cog):
                     text=f"Author: u/{post.author} on Subreddit {post.subreddit_name_prefixed}")
                 reddit_channel = self.bot.reddit_notifications_channel
 
-                return await reddit_channel.send(embed=embed)
-        except:
-            pass
+                await reddit_channel.send(f"{self.bot.reddit_notifications_role.mention} New post on r/Martingarrix", embed=embed)
+                await asyncio.sleep(3)
+        except Exception as e:
+            print(e)
 
 
 
@@ -54,19 +61,22 @@ class Notifications(commands.Cog):
         try:
             playlist_ids = ['UU5H_KXkPbEsGs0tFt8R35mA', 'PLwPIORXMGwchuy4DTiIAasWRezahNrbUJ']
             for playlist_id in playlist_ids:
-                video = self.youtube.playlistItems().list(playlistId=playlist_id, part="snippet", maxResults=1)
+                video = self.youtube.playlistItems().list(playlistId=playlist_id, part="snippet", maxResults=3)
                 loop = asyncio.get_event_loop()
                 video = await loop.run_in_executor(None, video.execute)
+                channel_title = video['items'][0]['snippet']['channelTitle']
                 video_id = video['items'][0]['snippet']['resourceId']['videoId']
                 try:
                     await self.bot.db.execute("INSERT INTO youtube_videos(video_id) VALUES  ($1)", video_id)
-                except:
+                except IntegrityConstraintViolationError:
                     continue
+                except Exception as e:
+                    print(e)
+                    # TODO: Send to error channel
+                    return
                 youtube_notification_channel = self.bot.youtube_notifications_channel
-                try:
-                    await youtube_notification_channel.send('https://www.youtube.com/watch?v=' + video_id)
-                except:
-                    pass
+                await youtube_notification_channel.send(f'Hey {self.bot.garrix_news_role.mention}, {channel_title} just posted a new video. Go check it out!\nhttps://www.youtube.com/watch?v={video_id}')
+                await asyncio.sleep(3)
         except:
             pass
 

@@ -1,6 +1,5 @@
 import discord
 
-
 async def success_embed(title, description=None):
     embed = discord.Embed(title=f"<a:tick:810462879374770186>  {title}",
                           colour=discord.Color.green())

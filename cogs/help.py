@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 import itertools
 
+
 class HelpCommand(commands.HelpCommand):
     def custom_embed(self, **kwargs):
         return discord.Embed(color=discord.Colour.teal(), **kwargs).set_footer(text=f"Called by: {self.context.author}")
@@ -26,7 +27,7 @@ class HelpCommand(commands.HelpCommand):
 
     @property
     def opening_note(self):
-       return f"Use `{self.clean_prefix}help [command]` for more info on a command.\n You can also use `{self.clean_prefix}help [category]` for more info on a category."
+        return f"Use `{self.clean_prefix}help [command]` for more info on a command.\n You can also use `{self.clean_prefix}help [category]` for more info on a category."
 
     def subcommand_not_found(self, command, string):
         if isinstance(command, commands.Group) and len(command.all_commands) > 0:
@@ -86,8 +87,9 @@ class HelpCommand(commands.HelpCommand):
             return await self.context.invoke(command)
 
         embed = self.custom_embed(title=" | ".join([command.name] + command.aliases),
-                                      description=self.command_desk(command, add_example=True))
+                                  description=self.command_desk(command, add_example=True))
         return await self.context.send(embed=embed)
+
 
 class Help(commands.Cog):
     def __init__(self, bot):
@@ -96,7 +98,7 @@ class Help(commands.Cog):
         bot.help_command = HelpCommand()
         bot.help_command.cog = self
         bot.get_command("help").hidden = True
-    
+
+
 def setup(bot):
     bot.add_cog(Help(bot))
-

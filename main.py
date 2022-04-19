@@ -1,37 +1,34 @@
 import datetime
+import inspect
 
 import discord
 from discord.ext import commands
-from discord.ext.commands.errors import *
-
-import dotenv
+from discord.ext.commands.errors import ExtensionAlreadyLoaded, BotMissingPermissions,BotMissingRole, BotMissingAnyRole, MissingPermissions, BadUnionArgument, CommandOnCooldown, PrivateMessageOnly, NoPrivateMessage, MissingRequiredArgument, ConversionError, MissingRole, MissingAnyRole, CommandNotFound, MemberNotFound, CheckFailure
 import os
 import asyncio
-import random
-import inspect
 import traceback
+import os
+import dotenv
 
 import bot_config
+
 from cogs.utils.DataBase.client import DataBase
-from cogs.utils.DataBase.message import Message
 from cogs.utils.DataBase import init_db
-from cogs.utils.custom_embed import failure_embed
+from cogs.utils.DataBase.message import Message
+from cogs.utils.custom_embeds import failure_embed
 
 os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
 os.environ["JISHAKU_NO_DM_TRACEBACK"] = "True"
 
 cogs = [
-    'cogs.extras',
-    'cogs.fun',
+    'jishaku',
     'cogs.help',
-    'cogs.levelling',
-    'cogs.moderation',
-    'cogs.notifications',
+    'cogs.extras',
     'cogs.polls',
-    'cogs.reaction_roles',
-    'cogs.setup_guild',
-    'cogs.tags',
-    'jishaku'
+    'cogs.notifications',
+    'cogs.tag',
+    'cogs.fun',
+    'cogs.levelling'
 ]
 
 class MartinGarrixBot(commands.Bot):
@@ -41,11 +38,9 @@ class MartinGarrixBot(commands.Bot):
                          allowed_mentions=discord.AllowedMentions(everyone=True, roles=True),
                          case_insensetive=True,
                          **kwargs)
-
+        dotenv.load_dotenv(".env")
         self.start_time = datetime.datetime.utcnow()
         self.db = None
-        # self.clean_text = commands.clean_content(escape_markdown=True, fix_channel_mentions=True)
-        dotenv.load_dotenv('.env')
 
     async def process_commands(self, message: discord.Message):
         if message.author.bot:
@@ -55,14 +50,14 @@ class MartinGarrixBot(commands.Bot):
 
     async def on_connect(self):
         """Connect DB before bot is ready to assure that no calls are made before its ready"""
-
         self.db = await DataBase.create_pool(bot=self, uri=os.environ.get('POSTGRES_URI'), loop=self.loop)
-        
         queries = ";".join([i[1] for i in inspect.getmembers(init_db) if not i[0].startswith("__")])
         await self.db.execute(queries)
 
     async def on_ready(self):
-
+        self.guild = self.get_guild(bot_config.GUILD_ID)
+        if self.guild is None:
+            print("Could not find guild.")
         self.modlogs_channel = self.get_channel(id=bot_config.MODLOGS_CHANNEL) if bot_config.MODLOGS_CHANNEL is not None else None
         self.leave_join_logs_channel = self.get_channel(id=bot_config.LEAVE_JOIN_LOGS_CHANNEL) if bot_config.LEAVE_JOIN_LOGS_CHANNEL is not None else None
         self.youtube_notifications_channel = self.get_channel(id=bot_config.YOUTUBE_NOTIFICATION_CHANNEL) if bot_config.YOUTUBE_NOTIFICATION_CHANNEL is not None else None
@@ -70,6 +65,14 @@ class MartinGarrixBot(commands.Bot):
         self.welcomes_channel = self.get_channel(id=bot_config.WELCOMES_CHANNEL) if bot_config.WELCOMES_CHANNEL is not None else None
         self.delete_logs_channel = self.get_channel(id=bot_config.DELETE_LOGS_CHANNEL) if bot_config.DELETE_LOGS_CHANNEL is not None else None
         self.edit_logs_channel = self.get_channel(bot_config.EDIT_LOGS_CHANNEL) if bot_config.EDIT_LOGS_CHANNEL is not None else None
+        self.team_role = self.guild.get_role(bot_config.TEAM_ROLE)
+        self.support_role = self.guild.get_role(bot_config.SUPPORT_ROLE)
+        self.moderator_role = self.guild.get_role(bot_config.MODERATOR_ROLE)
+        self.admin_role = self.guild.get_role(bot_config.ADMIN_ROLE)
+        self.garrixer_role = self.guild.get_role(bot_config.GARRXIER_ROLE)
+        self.true_garrixer_role = self.guild.get_role(bot_config.TRUE_GARRIXER_ROLE)
+        self.reddit_notifications_role = self.guild.get_role(bot_config.REDDIT_NOTIFICATION_ROLE)
+        self.garrix_news_role = self.guild.get_role(bot_config.GARRIX_NEWS_ROLE)
         self.xp_multiplier = bot_config.XP_MULTIPLIER
 
         for ext in cogs:
@@ -82,89 +85,45 @@ class MartinGarrixBot(commands.Bot):
         print(f'Successfully logged in as {self.user}\nConncted to {len(self.guilds)} guilds')
 
     async def on_member_join(self, member):
-        responses = ['Welcome {}, we hope you brought pizza for us. \U0001F355']
-
-        query = "INSERT INTO join_leave_logs(guild_id, member_id, action) VALUES($1, $2, $3)"
-
-        await self.db.execute(query, member.guild.id, member.id, "join")
-
-        if self.leave_join_logs_channel is not None:
-            embed = discord.Embed(colour=discord.Colour.dark_blue())
-            embed.add_field(name="Member", value=f"{member.mention}")
-            embed.add_field(name="Member ID", value=f"{member.id}")
-            embed.add_field(name="Action", value="Join")
-            embed.add_field(name="Timestamp", value=datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S"))
-            embed.set_thumbnail(url=member.avatar_url)
-            try:
-                await self.leave_join_logs_channel.send(embed=embed)
-            except Exception as e:
-                print(e)
-
-        if self.welcomes_channel is not None:
-            try:
-                await self.welcomes_channel.send(random.choice(responses).format(member.mention))
-            except:
-                pass
+        pass
 
     async def on_member_remove(self, member):
-        query = "INSERT INTO join_leave_logs(guild_id, member_id, action) VALUES($1, $2, $3)"
-
-        await self.db.execute(query, member.guild.id, member.id, "leave")
-
-        if self.leave_join_logs_channel is not None:
-            embed = discord.Embed(colour=discord.Colour.dark_blue())
-            embed.add_field(name="Member Name", value=f"{member.name}")
-            embed.add_field(name="Member ID", value=f"{member.id}")
-            embed.add_field(name="Action", value="Leave")
-            embed.add_field(name="Timestamp", value=datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S"))
-            embed.set_thumbnail(url=member.avatar_url)
-            try:
-                await self.leave_join_logs_channel.send(embed=embed)
-            except:
-                pass
+        pass
 
     async def on_message(self, message):
+        await self.wait_until_ready()
         if not message.guild:
             return
-        await self.wait_until_ready()
+        elif message.guild.id != self.guild.id:
+            return
         await Message.on_message(bot=self, message=message, xp_multiplier=self.xp_multiplier)
         return await self.process_commands(message)
 
     async def on_message_delete(self, message):
         if message.embeds or message.author.bot: return
         if self.delete_logs_channel is not None:
-            embed = discord.Embed(description=f"Message deleted by {message.author.mention} in {message.channel.mention}",
-                                  color=discord.Color.dark_orange())
+            embed = discord.Embed(
+                description=f"Message deleted by {message.author.mention} in {message.channel.mention}",
+                color=discord.Color.dark_orange())
             embed.add_field(name='Content', value=message.content)
-            try:
-                await self.delete_logs_channel.send(embed=embed)
-            except:
-                pass
-        else:
-            return
+            await self.delete_logs_channel.send(embed=embed)
 
-    async def on_message_edit(self, message_before: discord.Message , message_after: discord.Message):
+    async def on_message_edit(self, message_before: discord.Message, message_after: discord.Message):
         if message_before.embeds or message_after.embeds: return
         if message_before.author.bot or message_after.author.bot: return
 
-        await Message.on_message(bot=self,message=message_after, xp_multiplier=self.xp_multiplier)
+        await Message.on_message(bot=self, message=message_after, xp_multiplier=self.xp_multiplier)
         if self.edit_logs_channel is not None:
             embed = discord.Embed(
                 description=f"Message edited by {message_before.author.mention} in {message_before.channel.mention}",
                 color=discord.Color.gold())
             embed.add_field(name='Original Message', value=f'{message_before.content}')
-            embed.add_field(name='Edited Message', value=f'{message_after.content}\n[Go to message]({message_after.jump_url})')
-            try:
-                await self.edit_logs_channel.send(embed=embed)
-            except:
-                pass
-        else:
-            return
+            embed.add_field(name='Edited Message',
+                            value=f'{message_after.content}\n[Go to message]({message_after.jump_url})')
+            await self.edit_logs_channel.send(embed=embed)
 
     async def on_command_error(self, ctx, error):
-        print(error)
         message = None
-
         if hasattr(ctx.command, 'on_error'):
             return
 

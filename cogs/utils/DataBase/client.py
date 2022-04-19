@@ -3,7 +3,6 @@ import asyncio
 
 from .message import Message
 from .tag import Tag
-from .channel import Channel
 from .user import User
 
 
@@ -38,12 +37,12 @@ class DataBase(object):
             async with self._pool.acquire() as con:
                 return await con.execute(query, *args, timeout=self.timeout)
 
-    async def get_user(self, user_id: int, guild_id: int):
-        query = """SELECT * FROM users WHERE id = $1 AND guild_id = $2"""
-        record = await self.fetchrow(query, user_id, guild_id)
+    async def get_user(self, id: int):
+        query = """SELECT * FROM users WHERE id = $1"""
+        record = await self.fetchrow(query, id)
         if record is None:
             # Post new user.
-            user = User(bot=self.bot, id=user_id, guild_id=guild_id)
+            user = User(bot=self.bot, id=id)
             await user.post()
             return user
         return User(bot=self.bot, **record)
@@ -53,34 +52,9 @@ class DataBase(object):
         record = await self.fetchrow(query, message_id)
         return Message(bot=self.bot, **record)
 
-    async def get_tag(self, guild_id: int, name: str):
-        query = """SELECT * FROM tags WHERE guild_id = $1 AND name = $2"""
-        record = await self.fetchrow(query, guild_id, name)
+    async def get_tag(self, name: str):
+        query = """SELECT * FROM tags WHERE name = $1"""
+        record = await self.fetchrow(query, name)
         if record is not None:
             return Tag(bot=self.bot, **record)
         return record
-
-    async def get_channel(self, channel_id: int):
-        query = """SELECT * FROM channels WHERE channel_id = $1"""
-        record = await self.fetchrow(query, channel_id)
-        if record is not None:
-            return Channel(bot=self.bot, **record)
-        return record
-
-    async def add_mod_role(self, mod_role_id, guild_id):
-        query = """UPDATE mod_roles SET role_id = $1 WHERE guild_id = $2"""
-        await self.execute(query, mod_role_id, guild_id)
-
-    async def add_admin_role(self, admin_role_id, guild_id):
-        query = """UPDATE admin_roles SET role_id = $1 WHERE guild_id = $2"""
-        await self.execute(query, admin_role_id, guild_id)
-
-    async def remove_mod_role(self, mod_role_id, guild_id):
-        query = """DELETE FROM mod_roles WHERE role_id = $1 & guild_id = $2"""
-        await self.execute(query, mod_role_id, guild_id)
-
-    async def remove_admin_role(self, mod_role_id, guild_id):
-        query = """DELETE FROM admin_roles WHERE role_id = $1 & guild_id = $2"""
-        await self.execute(query, mod_role_id, guild_id)
-
-

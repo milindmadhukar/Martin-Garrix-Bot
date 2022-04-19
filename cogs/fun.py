@@ -4,12 +4,13 @@ import random
 import asyncio
 from difflib import SequenceMatcher
 
-from .utils.custom_embed import failure_embed
+from .utils.custom_embeds import failure_embed, success_embed
+from .utils.parser import parse_amount
+
 
 class Fun(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-
 
     @commands.command(help="Get the lyrics of any Martin Garrix, Area 21, GRX or YTRAM song.")
     async def lyrics(self, ctx, *, song_name):
@@ -30,7 +31,7 @@ class Fun(commands.Cog):
 
 
     @commands.command(help="Lyrics quiz on various difficulties of Martin Garrix, Area 21, GRX and YTRAM songs.")
-    @commands.cooldown(1, 3*60 , commands.BucketType.user)
+    @commands.cooldown(1, 10*60 , commands.BucketType.user)
     async def quiz(self, ctx, difficulty: lambda inp: inp.lower()=None):
         if difficulty == None or difficulty not in ['easy', 'medium', 'hard', 'extreme']:
             embed = discord.Embed(title="Please choose an appropriate difficulty level.", description="Your choices are:\n**easy** : 50 garrix coins\n**medium** : 100 garrix coins\n**hard** : 150 garrix coins\n**extreme** : 200 garrix coins", color=discord.Colour.teal())
@@ -43,22 +44,27 @@ class Fun(commands.Cog):
         song = await self.bot.db.fetchrow(query)
         lines = song['lyrics'].split('\n')
         lyrics = ""
-        difficulty_lines = {'easy' : 3, 'medium' : 2, 'hard' : 1, 'extreme' : 1}
+        difficulty_lines = {'easy' : 4, 'medium' : 3, 'hard' : 2, 'extreme' : 1}
         start = 0
         end = len(lines) - 1 - difficulty_lines.get(difficulty, 3) // 2
         if difficulty == 'extreme':
             start = len(lines) // 2
             end = len(lines) - 1 - difficulty_lines.get(difficulty, 3) // 2
         line_number = random.randint(start, end)
-
+        tries = 0
         while lyrics == "":
+            tries += 1
             lyrics = "\n".join(lines[line_number:line_number + difficulty_lines.get(difficulty, 3)])
+            if tries > 10:
+                break
+        if not lyrics:
+            await ctx.command.reset_cooldown(ctx)
+            return await ctx.send("Some error occurred, please try again.")
 
-        embed = discord.Embed(title=f"Guess the song from the lyrics! ({difficulty.title()})", description="Guess the song name within 45 seconds.", colour=discord.Colour.gold())
+        embed = discord.Embed(title=f"Guess the song title from the lyrics! ({difficulty.title()})", description="Guess the song name within 45 seconds.", colour=discord.Colour.gold())
         embed.add_field(name="Lyrics", value=lyrics)
-        embed.set_footer(text=f"Game for {ctx.author.name}")
 
-        await ctx.send(embed=embed)
+        await ctx.message.reply(embed=embed, mention_author=False)
 
         check = lambda m: (m.author.id == ctx.author.id and m.channel.id == ctx.channel.id)
 
@@ -78,49 +84,112 @@ class Fun(commands.Cog):
                 earning_dict = {'easy' : 50 , 'medium' : 100, 'hard' : 150, 'extreme' : 200}
                 earning = earning_dict.get(difficulty)
                 embed = discord.Embed(title=f"<a:tick:810462879374770186> Your guess is correct and you earned {earning} Garrix Coins.", colour=discord.Colour.green())
-                user = await self.bot.db.get_user(user_id=ctx.author.id, guild_id=ctx.guild.id)
+                user = await self.bot.db.get_user(id=ctx.author.id)
+                if user is None:
+                    return
                 user.garrix_coins += earning
                 await user.update_garrix_coins()
 
             else:
                 embed = discord.Embed(title=f"<a:cross:810462920810561556>  Your guess is incorrect", colour=discord.Colour.red())
-        
+
         embed.add_field(name="Song Name", value=f"{song['alias']} - {song['name']}")
         if song['thumbnail_url'] is not None:
             embed.set_thumbnail(url = song['thumbnail_url'])
 
-        try:
-            await ctx.send(embed=embed)
-        except:
-            ctx.command.reset_cooldown(ctx)
-            return await ctx.senc("Some error occurred, please try again.")
+        await guess.reply(embed=embed, mention_author=False)
 
     @quiz.error
     async def quiz_error(self, ctx, error):
         if isinstance(error, commands.CommandOnCooldown):
             embed = discord.Embed(title="You are currently on cooldown.", description=f" This game can only be played once in 10 minutes.\nTry again in {int(error.retry_after)} seconds", color=discord.Colour.red())
-
             return await ctx.send(embed=embed)
+        else:
+            print(error)
 
     @commands.command(help="Check you account balance for Garrix coins", aliases=['bal'])
     async def balance(self, ctx, member: discord.Member = None):
         if member is None:
             member = ctx.author
-        query = "SELECT in_hand, garrix_coins FROM users WHERE id = $1 AND guild_id = $2"
-        record = await self.bot.db.fetchrow(query, ctx.author.id, ctx.guild.id)
+        query = "SELECT in_hand, garrix_coins FROM users WHERE id = $1"
+        record = await self.bot.db.fetchrow(query, member.id)
         in_hand = record["in_hand"]
         garrix_coins = record["garrix_coins"]
         embed = discord.Embed(title="Garrix Bank", colour=discord.Colour.orange())
-        embed.add_field(name="In hand", value=in_hand, inline=True)
-        embed.add_field(name="In Garrix Bank", value=garrix_coins, inline=True)
+        embed.add_field(name="In hand", value=in_hand)
+        embed.add_field(name="In Safe", value=garrix_coins)
         embed.set_thumbnail(url=member.avatar_url_as(size=256))
         # embed.set_footer(f"Balance of {member.name}")
 
         return await ctx.send(embed=embed)
 
+    @commands.cooldown(1, 6*60*60 , commands.BucketType.user)
+    @commands.command(help="Steal Garrix coins from another member")
+    async def rob(self, ctx, member: discord.Member):
+        if member.id == ctx.author.id:
+            return await ctx.send(embed=await failure_embed("You can't rob yourself."))
+
+        query = "SELECT in_hand FROM users WHERE id = $1"
+        record = await self.bot.db.fetchrow(query, member.id)
+        in_hand = record['in_hand']
+        if in_hand < 200:
+            return await ctx.send(embed=await failure_embed("Member needs to have atleast 200 Garrix to be robbed."))
+        is_going_to_be_robbed = random.choice([True, False, False, False, False])
+        # is_going_to_be_robbed = True
+        if is_going_to_be_robbed:
+            amount_robbed = random.randint(200, in_hand)
+            query = "UPDATE users SET in_hand = in_hand - $2 WHERE id = $1"
+            await self.bot.db.execute(query, member.id, amount_robbed)
+            query = "UPDATE users SET in_hand = in_hand + $2 WHERE id = $1"
+            await self.bot.db.execute(query, ctx.author.id, amount_robbed)
+            return await ctx.send(f"Successfully robbed {amount_robbed} Garrix coins from {member.mention}")
+        else:
+            query = "UPDATE users SET in_hand = in_hand - 200 WHERE id = $1"
+            await self.bot.db.execute(query, ctx.author.id)
+            return await ctx.message.reply("🚔 You have been caught stealing and lost 200 Garrix coins")
 
 
+    @commands.command(help="Withdraw Garrix coins from safe to hold in hand.", aliases=['with', 'wd'])
+    async def withdraw(self, ctx, amount:str):
+        query = "SELECT garrix_coins FROM users WHERE id = $1"
+        record = await self.bot.db.fetchrow(query, ctx.author.id)
+        garrix_coins = record['garrix_coins']
+        amt = parse_amount(amount, garrix_coins)
+        if amt > garrix_coins:
+            return await ctx.send(embed= await failure_embed(f"Not enough balance to withdraw {amt} Garrix coins."))
+        query = "UPDATE users SET in_hand = in_hand + $2, garrix_coins = garrix_coins - $2 WHERE id = $1"
+        await self.bot.db.execute(query, ctx.author.id, amt)
+        return await ctx.send(embed=await success_embed(f"Successfully withdrew {amount} coins."))
 
-    
+    @commands.command(help="Deposit Garrix coins from hand to safe.", aliases=['depo', 'dep'])
+    async def deposit(self, ctx, amount:str):
+        query = "SELECT in_hand FROM users WHERE id = $1"
+        record = await self.bot.db.fetchrow(query, ctx.author.id)
+        in_hand = record['in_hand']
+        amt = parse_amount(amount, in_hand)
+        if amt > in_hand:
+            return await ctx.send(embed=await failure_embed("Can't deposit more than what you hold in your hand."))
+        query = "UPDATE users SET in_hand = in_hand - $2, garrix_coins = garrix_coins + $2 WHERE id = $1 "
+        await self.bot.db.execute(query, ctx.author.id, amt)
+        return await ctx.send(embed=await success_embed(f"Successfully deposited {amount} coins."))
+
+    @commands.command(help="Give Garrix coins to a member.")
+    async def give(self, ctx, member:discord.Member, amount: str):
+        query = "SELECT in_hand FROM users WHERE id = $1"
+        record = await self.bot.db.fetchrow(query, ctx.author.id)
+        if record is None:
+            print("No such user?")
+            return
+        in_hand = record['in_hand']
+        amt = parse_amount(amount, in_hand)
+        if amt > in_hand:
+            return await ctx.send(embed=await failure_embed("Can't give more than what you hold in your hand. Try withdrawing if you have the balance"))
+        query = "UPDATE users SET in_hand = in_hand + $2 WHERE id = $1"
+        await self.bot.db.execute(query, member.id, amt)
+        query = "UPDATE users SET in_hand = in_hand - $2 WHERE id = $1"
+        await self.bot.db.execute(query, ctx.author.id, amt)
+        return await ctx.send(embed=await success_embed(f"Successfully gave {amount} coins to {member.display_name}."))
+
+
 def setup(bot):
     bot.add_cog(Fun(bot))

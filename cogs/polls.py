@@ -3,6 +3,7 @@ from discord.ext import commands
 
 import datetime
 
+
 class Polls(commands.Cog):
     def __init__(self, bot):
         self.__bot = bot
@@ -65,7 +66,7 @@ class Polls(commands.Cog):
     async def new(self, ctx, desc: str, *choices):
         """ Create a new poll """
         await ctx.message.delete()
-        
+
         if len(choices) < 2:
             ctx.command.reset_cooldown(ctx)
             if len(choices) == 1:
@@ -76,8 +77,8 @@ class Polls(commands.Cog):
             ctx.command.reset_cooldown(ctx)
             return await ctx.send("You can't make a poll with more than 10 choices")
 
-        embed = discord.Embed(description=f"**{desc}**\n\n"+"\n\n".join(
-                                  f"{str(self.reactions[i])}  {choice}" for i, choice in enumerate(choices, 1)),
+        embed = discord.Embed(description=f"**{desc}**\n\n" + "\n\n".join(
+            f"{str(self.reactions[i])}  {choice}" for i, choice in enumerate(choices, 1)),
                               timestamp=datetime.datetime.utcnow(), color=discord.colour.Color.gold())
         embed.set_footer(text=f"Poll by {str(ctx.author)}")
         msg = await ctx.send(embed=embed)
@@ -88,7 +89,7 @@ class Polls(commands.Cog):
     async def show(self, ctx, message: str):
         """Show a poll result"""
         await ctx.message.delete()
-        
+
         try:
             *_, channel_id, msg_id = message.split("/")
 
@@ -109,20 +110,21 @@ class Polls(commands.Cog):
             reactions_total = sum([reaction.count - 1 if str(reaction.emoji) in self.reactions.values() else 0
                                    for reaction in reactions])
 
-            options = list(map(lambda o:' '.join(o.split()[1:]), poll_embed.description.split('1️')[1].split("\n\n")))
+            options = list(map(lambda o: ' '.join(o.split()[1:]), poll_embed.description.split('1️')[1].split("\n\n")))
             desc = poll_embed.description.split('1️')[0]
 
             embed = discord.Embed(description=desc, timestamp=poll_embed.timestamp, color=discord.Color.gold())
 
             for i, option in enumerate(options):
                 reaction_count = reactions[i].count - 1
-                indicator = "░"*20
+                indicator = "░" * 20
                 if reactions_total != 0:
                     indicator = ("█" * int(((reaction_count / reactions_total) * 100) / 5) +
                                  "░" * int((((reactions_total - reaction_count) / reactions_total) * 100) / 5))
 
-                embed.add_field(name=option, value=f"{indicator}  {int((reaction_count / (reactions_total or 1)*100))}%"
-                                                   f" (**{reaction_count} votes**)", inline=False)
+                embed.add_field(name=option,
+                                value=f"{indicator}  {int((reaction_count / (reactions_total or 1) * 100))}%"
+                                      f" (**{reaction_count} votes**)", inline=False)
 
             embed.set_footer(text="Poll Result")
             return await ctx.send(embed=embed)

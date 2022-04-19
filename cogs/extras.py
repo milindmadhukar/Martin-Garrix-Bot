@@ -3,9 +3,6 @@ import psutil
 from discord.ext import commands, tasks
 import random
 import platform
-from aiohttp import request
-from .utils.custom_embed import success_embed, failure_embed
-
 
 class Extras(commands.Cog):
     def __init__(self, bot):
@@ -63,26 +60,25 @@ class Extras(commands.Cog):
         if member is None:
             member = ctx.author
         embed = discord.Embed(title=str(member), color=member.color)
-        embed.set_image(url=member.avatar_url_as(size=256))
+        embed.set_image(url=member.avatar_url_as(size=512))
         await ctx.send(embed=embed)
 
     @commands.command(help="Get the total number of messages sent by a member.")
     async def messages(self, ctx, member = None):
         if member is None:
             member = ctx.author
-        query = "SELECT messages_sent FROM users WHERE id = $1 AND guild_id = $2"
-        msg_count = await self.bot.db.fetchrow(query, member.id, ctx.guild.id)
+        query = "SELECT messages_sent FROM users WHERE id = $1"
+        msg_count = await self.bot.db.fetchrow(query, member.id)
         embed = discord.Embed(color=discord.Color.orange())
         embed.set_author(name=member.display_name, icon_url=member.avatar_url)
         embed.add_field(name='Count', value=msg_count['messages_sent'])
-        embed.set_footer(text=str(ctx.author), icon_url=ctx.author.avatar_url)
+        embed.set_footer(text=f'User ID: {member.id}')
         await ctx.send(embed=embed)
 
     @commands.command(help="Get the info about a member or bot in the server.", aliases=['memberinfo'])
     async def whois(self, ctx, member: discord.Member = None):
         if member is None:
             member = ctx.author
-        guild = ctx.guild
         user = None
 
         perm_list = [perm[0] for perm in member.guild_permissions if perm[1]]
@@ -91,14 +87,13 @@ class Extras(commands.Cog):
 
 
         if not member.bot:
-            user = await self.bot.db.get_user(user_id=member.id, guild_id=guild.id)
+            user = await self.bot.db.get_user(id=member.id)
         embed = discord.Embed(description=f"{member.mention}", color=member.color)
         embed.set_author(name=str(member), icon_url=member.avatar_url)
         if user is not None:
             embed.add_field(name="Messages sent", value=user.messages_sent)
-            embed.add_field(name="Garrix Coins", value=user.garrix_coins)
             embed.add_field(name='Status', value=f'{str(member.status).upper()}')
-            embed.add_field(name='Nickname', value=member.nick, inline=True)    
+            embed.add_field(name='Nickname', value=member.nick, inline=True)
 
         embed.add_field(name="Joined", value=member.joined_at.strftime("%b %d %Y, %H:%M:%S"), inline=False)
         embed.add_field(name="Registered", value=member.created_at.strftime("%b %d %Y, %H:%M:%S"), inline=False)
@@ -122,51 +117,12 @@ class Extras(commands.Cog):
 
     @commands.command(help="Send a message in a channel.", aliases=['send'])
     @commands.has_permissions(administrator=True)
-    async def say(self, ctx, channel: discord.TextChannel = None, *, message: str = None):
-        if channel is None:
-            channel = ctx.channel
+    async def say(self, ctx, channel: discord.TextChannel, *, message: str = None):
         if message is None:
             await ctx.send("Please provide a message.")
         message = await commands.clean_content().convert(ctx=ctx, argument=message)
-        if message.endswith('-s'):
-            await ctx.message.delete()
-            message = message[:-2]
-            if not message:
-                return
-        return await ctx.send(message)
-
-    # @commands.has_permissions(administrator=True)
-    # @commands.command(help="Start the youtube together feature for a particular voice channel.", aliases=['watch', 'yt'])
-    # async def youtube(self, ctx, voice_channel: discord.VoiceChannel):
-    #     await ctx.message.delete()
-    #     async with request('POST',
-    #                        f"https://discord.com/api/v8/channels/{voice_channel.id}/invites",
-    #                        headers={
-    #                            "Authorization": f"Bot {self.bot.http.token}",
-    #                            "Content-Type": "application/json"
-    #                        },
-    #                        json={
-    #                            "max_age": 3600,
-    #                            "max_uses": 0,
-    #                            "target_application_id": "755600276941176913",
-    #                            "target_type": 2,
-    #                            "temporary": False,
-    #                            "validate": None
-    #                        }) as response:
-    #         if response.status == 200:
-    #             response = await response.json()
-    #             invite = f"https://discord.gg/{response['code']}"
-    #             try:
-    #                 embed = discord.Embed(title="Click on me to join the VC and start youtube.", url=invite,
-    #                                       colour=discord.Colour.red())
-    #                 await ctx.author.send(embed=embed)
-    #                 return await ctx.send(embed=await success_embed("DMed you the invite link successfully."),
-    #                                       delete_after=10)
-    #             except:
-    #                 return await ctx.send(
-    #                     embed=failure_embed(title="Could not DM you. Please open your DMs and retry."), delete_after=10)
-    #         else:
-    #             return await ctx.send(embed=await failure_embed(title="Some error occured."), delete_after=10)
+        await channel.send(message)
+        # TODO: Some sort of response?
 
     @commands.command(help="Gives you the info of the current server.")
     async def serverinfo(self, ctx):
