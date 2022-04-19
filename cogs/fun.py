@@ -122,11 +122,10 @@ class Fun(commands.Cog):
 
         return await ctx.send(embed=embed)
 
-    @commands.cooldown(1, 6*60*60 , commands.BucketType.user)
+    @commands.cooldown(1, 3*60*60 , commands.BucketType.user)
     @commands.command(help="Steal Garrix coins from another member")
     async def rob(self, ctx, member: discord.Member):
         if member.id == ctx.author.id:
-
             ctx.command.reset_cooldown(ctx)
             return await ctx.send(embed=await failure_embed("You can't rob yourself."))
 
@@ -154,9 +153,10 @@ class Fun(commands.Cog):
     @rob.error
     async def rob_error(self, ctx, error):
         if isinstance(error, commands.CommandOnCooldown):
-            embed = discord.Embed(title="You are currently on cooldown.", description=f" Woah theif, you can only rob once in 6 hours.\nTry again in {int(error.retry_after)} seconds", color=discord.Colour.red())
+            embed = discord.Embed(title="You are currently on cooldown.", description=f" Woah theif, you can only rob once in 3 hours.\nTry again in {int(error.retry_after)} seconds", color=discord.Colour.red())
             return await ctx.send(embed=embed)
         else:
+            ctx.command.reset_cooldown(ctx)
             print(error)
 
 
