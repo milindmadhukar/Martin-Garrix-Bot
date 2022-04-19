@@ -46,7 +46,7 @@ class Levelling(commands.Cog):
 
     @commands.command(aliases=['lb', 'rankings'])
     async def leaderboard(self, ctx, *, lb_type=None):
-        query = "SELECT id, messages_sent, garrix_coins, total_xp FROM users "
+        query = "SELECT id, messages_sent, in_hand, garrix_coins, total_xp FROM users "
         help_categories = """Available Categories:
         `xp`, `total xp`, `experience`, `levels`, `level`, `lvl` - **Ordered on your level in the server.**
         `coins`, `coin`, `currency`, `garrix coins` - **Ordered by the amount of coins you have.**
@@ -63,7 +63,7 @@ class Levelling(commands.Cog):
                 member = ctx.guild.get_member(record['id'])
                 if member is None:
                     continue
-                lb.append([member, record['garrix_coins']])
+                lb.append([member, (record['garrix_coins'] + record['in_hand'])])
 
         elif lb_type in ["xp", "total xp", "experience", "levels", "level", "lvl", "rank"]:
             query += "ORDER BY total_xp DESC LIMIT 10"
