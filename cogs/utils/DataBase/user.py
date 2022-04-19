@@ -25,6 +25,10 @@ class User(object):
                     ON CONFLICT DO NOTHING"""
             await self.bot.db.execute(query, self.id)
 
+    async def add_coins(self, amount:int) -> None:
+        query = """UPDATE SET in_hand=in_hand + $2 WHERE id = $1"""
+        await self.bot.db.execute(query, self.id, amount)
+
     async def update_garrix_coins(self) -> None:
         query = """UPDATE users SET in_hand = $1 WHERE id = $2"""
         await self.bot.db.execute(query, self.garrix_coins, self.id)

@@ -87,8 +87,7 @@ class Fun(commands.Cog):
                 user = await self.bot.db.get_user(id=ctx.author.id)
                 if user is None:
                     return
-                user.garrix_coins += earning
-                await user.update_garrix_coins()
+                await user.add_coins(earning)
 
             else:
                 embed = discord.Embed(title=f"<a:cross:810462920810561556>  Your guess is incorrect", colour=discord.Colour.red())
