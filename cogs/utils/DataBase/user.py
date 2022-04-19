@@ -26,7 +26,7 @@ class User(object):
             await self.bot.db.execute(query, self.id)
 
     async def add_coins(self, amount:int) -> None:
-        query = """UPDATE SET in_hand=in_hand + $2 WHERE id = $1"""
+        query = """UPDATE users SET in_hand=in_hand + $2 WHERE id = $1"""
         await self.bot.db.execute(query, self.id, amount)
 
     async def update_garrix_coins(self) -> None:
