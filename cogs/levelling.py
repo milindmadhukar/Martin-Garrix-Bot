@@ -51,6 +51,7 @@ class Levelling(commands.Cog):
         `xp`, `total xp`, `experience`, `levels`, `level`, `lvl` - **Ordered on your level in the server.**
         `coins`, `coin`, `currency`, `garrix coins` - **Ordered by the amount of coins you have.**
         `msgs`, `msg`, `total messages`, `all messages` - **Ordered by the number of messages you have sent.**
+        `hand`, `in hand` - **Ordered by the amount of Garrix coins in hand. Useful for robbing.
         """
         lb = None
         lb_name = None
@@ -86,6 +87,18 @@ class Levelling(commands.Cog):
                 if member is None:
                     continue
                 lb.append([member, humanize(record['messages_sent'])])
+
+        elif lb_type in ["hand", "in hand"]:
+            query += "ORDER BY in_hand DESC LIMIT 10"
+            records = await self.bot.db.fetch(query)
+            lb_name = "Coins in hand"
+            lb = []
+            for record in records:
+                member = ctx.guild.get_member(record['id'])
+                if member is None:
+                    continue
+                lb.append([member, record['in_hand']])
+
 
         else:
             return await ctx.send(embed=discord.Embed(
