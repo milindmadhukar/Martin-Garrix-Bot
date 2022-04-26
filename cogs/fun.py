@@ -73,7 +73,7 @@ class Fun(commands.Cog):
         similarity = None
 
         try:
-            guess = await self.bot.wait_for('message', check=check, timeout=30)
+            await self.bot.wait_for('message', check=check, timeout=30)
             similarity = SequenceMatcher(None, song['name'].lower().replace(" ", ""), guess.content.lower().replace(" ", "")).ratio()
 
         except asyncio.TimeoutError:
@@ -96,7 +96,7 @@ class Fun(commands.Cog):
         if song['thumbnail_url'] is not None:
             embed.set_thumbnail(url = song['thumbnail_url'])
 
-        await guess.reply(embed=embed, mention_author=False)
+        await ctx.send(embed=embed)
 
     @quiz.error
     async def quiz_error(self, ctx, error):
@@ -118,7 +118,6 @@ class Fun(commands.Cog):
         embed.add_field(name="In hand", value=in_hand)
         embed.add_field(name="In Safe", value=garrix_coins)
         embed.set_thumbnail(url=member.avatar_url_as(size=256))
-        # embed.set_footer(f"Balance of {member.name}")
 
         return await ctx.send(embed=embed)
 

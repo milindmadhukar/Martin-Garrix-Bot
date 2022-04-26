@@ -51,7 +51,7 @@ class Levelling(commands.Cog):
         `xp`, `total xp`, `experience`, `levels`, `level`, `lvl` - **Ordered on your level in the server.**
         `coins`, `coin`, `currency`, `garrix coins` - **Ordered by the amount of coins you have.**
         `msgs`, `msg`, `total messages`, `all messages` - **Ordered by the number of messages you have sent.**
-        `hand`, `in hand` - **Ordered by the amount of Garrix coins in hand. Useful for robbing.
+        `hand`, `in hand` - **Ordered by the amount of Garrix coins in hand. Useful for robbing.**
         """
         lb = None
         lb_name = None
