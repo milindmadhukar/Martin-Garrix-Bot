@@ -73,7 +73,7 @@ class Fun(commands.Cog):
         similarity = None
 
         try:
-            await self.bot.wait_for('message', check=check, timeout=30)
+            guess = await self.bot.wait_for('message', check=check, timeout=30)
             similarity = SequenceMatcher(None, song['name'].lower().replace(" ", ""), guess.content.lower().replace(" ", "")).ratio()
 
         except asyncio.TimeoutError:
