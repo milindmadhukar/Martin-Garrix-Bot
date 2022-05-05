@@ -51,7 +51,7 @@ packaging==20.9
 pastel==0.2.1
 pexpect==4.8.0
 Pillow==9.1.0
-pipenv==2018.11.26
+pipenv==2022.1.8
 pkginfo==1.7.1
 platformdirs==2.5.1
 poetry==1.1.8
