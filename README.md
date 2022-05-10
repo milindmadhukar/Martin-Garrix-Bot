@@ -4,10 +4,8 @@ A multipurpose bot created exclusively for Garrixers.
 
 ![Martin Garrix Bot](https://cdn.discordapp.com/avatars/799613778052382720/28de7ee4e8cc26956e4bf45ecb730b79.webp?size=256 "Martin Garrix Bot")
 
-_Please note that this bot is unfinished, a lot of code is unoptimized, not linted or formatted and I am archiving the project since the development of the module [discord.py](https://github.com/Rapptz/discord.py)  until I find time to rewrite it in some other module/language._
-
 ## 💻 Usage
-**To invite the bot and try it yourself click [here.](https://milindm.me/bot-invite)**
+**To try the bot, join the Martin Garrix Discord Server [here.](https://discord.gg/8sQvsmAT6s)**
 
 ## ️️🛠️ Tools Used
 
@@ -25,20 +23,21 @@ To set the project locally, the following steps are to be followed.
 1. Get yourself Youtube API and Reddit API tokens.
 1. Create a `.env` file in the root directory of the project and paste the following.
 ```
-TOKEN = <bot's secret token from discord developer portal>
-POSTGRES_URI = postgresql://postgres@localhost/databasename?user=username&password=password
-REDDIT_CLIENT_ID = <reddit client id>
-REDDIT_CLIENT_SECRET = <reddit client secret>
-YOUTUBE_API_TOKEN = <youtube api token>
-ERROR_CHANNEL = <channel id to report errors>
+TOKEN = "Bot token"
+
+POSTGRES_URI = postgresql://postgres@localhost/<dbname>?user<=username>&password=<password>
+
+REDDIT_CLIENT_ID = "Reddit Client ID"
+REDDIT_CLIENT_SECRET = "Reddit Client Secret"
+
+YOUTUBE_API_TOKEN = "Youtube API Token"
+
+ERROR_CHANNEL = <ID Of Channel to send error messages in>
 ```
 1. Create a virtual environment and run `pip install -r requirements.txt` to install all the necessary dependencies for the bot.
+1. Edit the bot_config.py file to add values of your own server. Make sure values are correct as it might lead to the bot not working as intended.
 1. Run the bot using `python main.py`. The bot should now be running and will automatically create tables in the database if everything was configured correctly.
 
 
-*If you invited the bot to a server before running the bot, it will cause errors, make sure to invite the bot only after you ran it so that it can make necessary entries in the database.*
-
-#### Extras
-If you face any difficulties contact me [here.](https://milindm.me/contact/)
 
 Thats it, have fun ✚✖
