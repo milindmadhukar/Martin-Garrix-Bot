@@ -11,7 +11,7 @@ A multipurpose bot created exclusively for Garrixers.
 
 This project was written in `Python 3`
 
-The bot was primarily built upon the [discord.py](https://github.com/Rapptz/discord.py) module, and `Postgres` for the database. `Asyncpg` was used to establish connections to the database.
+The bot was primarily built upon the [disnake](https://github.com/DisnakeDev/disnake) API wrapper, and `Postgres` for the database. `Asyncpg` was used to establish connections to the database.
 
 The bot also uses `YouTube` and `Reddit` APIs for certain functionality.
 
@@ -20,7 +20,7 @@ The bot also uses `YouTube` and `Reddit` APIs for certain functionality.
 To set the project locally, the following steps are to be followed.
 1. Go to the [Discord Developer Portal](https://discord.com/developers/applications), create an application. Create a bot and note down the bot's secret token. Go to Ouath, select `bot` and copy the bot invite link with `administrator` previleges.
 1. Create a PostgreSQL database and note the database uri down. 
-1. Get yourself Youtube API and Reddit API tokens.
+1. Get yourself YouTube API and Reddit API tokens.
 1. Create a `.env` file in the root directory of the project and paste the following.
 ```
 TOKEN = "Bot token"
@@ -35,9 +35,9 @@ YOUTUBE_API_TOKEN = "Youtube API Token"
 ERROR_CHANNEL = <ID Of Channel to send error messages in>
 ```
 1. Create a virtual environment and run `pip install -r requirements.txt` to install all the necessary dependencies for the bot.
-1. Edit the bot_config.py file to add values of your own server. Make sure values are correct as it might lead to the bot not working as intended.
-1. Run the bot using `python main.py`. The bot should now be running and will automatically create tables in the database if everything was configured correctly.
+2. Edit the `utils/enums.py` file to add values of your own server. Make sure values are correct as it might lead to the bot not working as intended.
+3. Run the bot using `python main.py`. The bot should now be running and will automatically create tables in the database if everything was configured correctly.
 
 
 
-Thats it, have fun ✚✖
+That's it, have fun ✚✖
