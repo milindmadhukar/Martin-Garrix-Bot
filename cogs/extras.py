@@ -20,7 +20,6 @@ class Extras(commands.Cog):
         status = await self.bot.database.fetchrow(
             "SELECT alias, name FROM songs ORDER BY RANDOM() LIMIT 1"
         )
-        print(self.bot.database)
         if status is None:
             return
         alias = status.get("alias", "Martin Garrix")
@@ -157,21 +156,22 @@ class Extras(commands.Cog):
 
     @commands.command(help="Gives you the info of the current server.")
     async def serverinfo(self, ctx: commands.Context):
-        guild = ctx.guild
+        guild: disnake.Guild = ctx.guild
         embed = disnake.Embed(title=guild.name, colour=disnake.Colour.blue())
-        embed.set_thumbnail(url=guild.icon.url)
         embed.add_field(name="Owner", value=guild.owner.mention)
-        embed.add_field(name="Members", value=str(guild.member_count))
-        embed.add_field(name="Region", value=str(guild.region).title())
-        embed.add_field(name="Categories", value=str(len(guild.categories)))
-        embed.add_field(name="Roles", value=str(len(guild.roles)))
-        embed.add_field(name="Boosters", value=str(guild.premium_subscription_count))
-        embed.add_field(name="Text Channels", value=str(len(guild.text_channels)))
-        embed.add_field(name="Voice Channels", value=str(len(guild.voice_channels)))
         embed.add_field(
             name="Created At", value=guild.created_at.strftime("%b %d %Y, %H:%M:%S")
         )
+        embed.add_field(name="Members", value=str(guild.member_count))
+        embed.add_field(name="Categories", value=str(len(guild.categories)))
+        embed.add_field(name="Text Channels", value=str(len(guild.text_channels)))
+        embed.add_field(name="Voice Channels", value=str(len(guild.voice_channels)))
+        embed.add_field(name="Roles", value=str(len(guild.roles)))
+        embed.add_field(name="Boosters", value=str(guild.premium_subscription_count))
+        embed.add_field(name="File Size Limit", value=str(guild.filesize_limit//(1024*1024)) + "mb")
         embed.set_footer(text=f"Guild ID : {guild.id}")
+        if guild.icon is not None:
+            embed.set_thumbnail(url=guild.icon.url)
         return await ctx.send(embed=embed)
 
     @commands.command(help="Gives you the info about the bot and its creator.")

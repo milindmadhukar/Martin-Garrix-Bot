@@ -15,13 +15,13 @@ class TagCommands(commands.Cog, name="Tags"):
         Main tag group.
         """
 
-        tag = await self.bot.db.get_tag(name=name)
+        tag = await self.bot.database.get_tag(name=name)
         if tag is None:
             await ctx.message.delete(delay=10.0)
             message = await ctx.send("Could not find a tag with that name.")
             return await message.delete(delay=10.0)
         await ctx.send(tag.content)
-        await self.bot.db.execute(
+        await self.bot.database.execute(
             "UPDATE tags SET uses = uses + 1 WHERE name = $1", name
         )
         return
@@ -31,7 +31,7 @@ class TagCommands(commands.Cog, name="Tags"):
         """
         Get information regarding the specified tag.
         """
-        tag = await self.bot.db.get_tag(name=name)
+        tag = await self.bot.database.get_tag(name=name)
 
         if tag is None:
             await ctx.message.delete(delay=10.0)
@@ -65,7 +65,7 @@ class TagCommands(commands.Cog, name="Tags"):
         name = await commands.clean_content().convert(ctx=ctx, argument=name)
         content = await commands.clean_content().convert(ctx=ctx, argument=content)
 
-        tag = await self.bot.db.get_tag(name=name)
+        tag = await self.bot.database.get_tag(name=name)
         if tag is not None:
             return await ctx.send("A tag with that name already exists.")
 
@@ -82,7 +82,7 @@ class TagCommands(commands.Cog, name="Tags"):
         """
         member = member or ctx.author
         query = """SELECT name FROM tags WHERE creator_id = $1 ORDER BY name, uses"""
-        records = await self.bot.db.fetch(query, member.id)
+        records = await self.bot.database.fetch(query, member.id)
         if not records:
             return await ctx.send("No tags found.")
 
@@ -104,7 +104,7 @@ class TagCommands(commands.Cog, name="Tags"):
         """
         List all existing tags alphabetically ordered and sends them in DMs.
         """
-        records = await self.bot.db.fetch("SELECT name FROM tags ORDER BY name")
+        records = await self.bot.database.fetch("SELECT name FROM tags ORDER BY name")
 
         if not records:
             return await ctx.send("This server doesn't have any tags.")
@@ -138,7 +138,7 @@ class TagCommands(commands.Cog, name="Tags"):
         """
         content = await commands.clean_content().convert(ctx=ctx, argument=content)
 
-        tag = await self.bot.db.get_tag(name=name)
+        tag = await self.bot.database.get_tag(name=name)
 
         if tag is None:
             await ctx.message.delete(delay=10.0)
@@ -157,7 +157,7 @@ class TagCommands(commands.Cog, name="Tags"):
         """
         Delete an existing tag.
         """
-        tag = await self.bot.db.get_tag(name=name)
+        tag = await self.bot.database.get_tag(name=name)
 
         if tag is None:
             await ctx.message.delete(delay=10.0)
@@ -179,7 +179,7 @@ class TagCommands(commands.Cog, name="Tags"):
         """
         # Test this.
         query = """SELECT name FROM tags WHERE name LIKE $1 LIMIT 10"""
-        records = await self.bot.db.fetch(query, term)
+        records = await self.bot.database.fetch(query, term)
 
         if not records:
             return await ctx.send(
@@ -207,7 +207,7 @@ class TagCommands(commands.Cog, name="Tags"):
 
         new_name = await commands.clean_content().convert(ctx=ctx, argument=new_name)
 
-        tag = await self.bot.db.get_tag(name=name)
+        tag = await self.bot.database.get_tag(name=name)
 
         if tag is None:
             await ctx.message.delete(delay=10.0)

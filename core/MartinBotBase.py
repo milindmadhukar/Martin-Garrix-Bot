@@ -299,7 +299,7 @@ class MartinGarrixBot(commands.Bot):
         This method creates a postgres database connection and executes sql code in it.
         """
         self.database = await Database.create_pool(
-            bot=self, uri=os.environ.get("POSTGRES_URI"), min_connections=1, max_connections=1
+            bot=self, uri=os.environ.get("POSTGRES_URI")
         )
 
         with open("./static/database.sql", mode="r") as r:

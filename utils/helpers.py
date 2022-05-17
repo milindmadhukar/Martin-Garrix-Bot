@@ -16,6 +16,8 @@ __all = (
     "f_xp_for_next_level",
 )
 
+templates = cycle(["red", "green", "pink", "yellow"])
+
 
 async def success_embed(title: str, description: str = None) -> disnake.Embed:
     """
@@ -144,7 +146,6 @@ def rank_picture(user: User, member_name: str, rank: int, img_data: BytesIO) -> 
     percentage = lvl_data["current_xp"] / lvl_data["xp_for_next_lvl"]
     bg = Image.open("./static/assets/grey_bg.png")
 
-    templates = cycle(["red", "green", "pink", "yellow"])
 
     colour = next(templates)
     WIDTH = 680
