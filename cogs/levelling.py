@@ -20,16 +20,15 @@ class Levelling(commands.Cog):
         help="Check your current level and rank throughout all server the bot is in.",
         aliases=["level", "lvl"],
     )
-    async def rank(self, ctx, member: disnake.Member = None):
-        if member is None:
-            member = ctx.author
+    async def rank(self, ctx: commands.Context, member: disnake.Member = None):
+        member = member or ctx.author
         if member.bot:
             return await ctx.send(
                 embed=await failure_embed(title="You can't check the rank of a bot.")
             )
         user = await self.bot.database.get_user(member.id)
         if user is not None:
-            pfp = member.avatar_url_as(size=256, static_format="png")
+            pfp = member.display_avatar.with_size(256).with_static_format("png")
             img_data = BytesIO(await pfp.read())
             loop = asyncio.get_event_loop()
             query_guild = f"""
@@ -51,7 +50,7 @@ class Levelling(commands.Cog):
             await ctx.send(embed=await failure_embed("Requested member was not found."))
 
     @commands.command(aliases=["lb", "rankings"])
-    async def leaderboard(self, ctx, *, lb_type=None):
+    async def leaderboard(self, ctx: commands.Context, *, lb_type: str = None):
         query = "SELECT id, messages_sent, in_hand, garrix_coins, total_xp FROM users "
         help_categories = """Available Categories:
         `xp`, `total xp`, `experience`, `levels`, `level`, `lvl` - **Ordered on your level in the server.**
