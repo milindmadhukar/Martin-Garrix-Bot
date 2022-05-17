@@ -79,6 +79,8 @@ def parse_amount(amount: str, other_quantity: int) ->  int:
         return other_quantity
     elif amount == "half":
         return other_quantity // 2
+    else:
+        return -1
 
     # TODO: Add else block and handle it.
 

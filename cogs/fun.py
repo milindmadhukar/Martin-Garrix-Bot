@@ -180,7 +180,7 @@ class Fun(commands.Cog):
             ctx.command.reset_cooldown(ctx)
             return await ctx.send(
                 embed=await failure_embed(
-                    "Member needs to have atleast 200 Garrix to be robbed."
+                    "Member needs to have atleast 200 Garrix coins in hand to be robbed."
                 )
             )
         is_going_to_be_robbed = random.choice([True, False, False, False, False])
@@ -229,10 +229,16 @@ class Fun(commands.Cog):
                     f"Not enough balance to withdraw {amt} Garrix coins."
                 )
             )
+        if amt <= 0:
+            return await ctx.send(
+                embed=await failure_embed(
+                    f"Please specify a valid amount to withdraw."
+                )
+            )
         query = "UPDATE users SET in_hand = in_hand + $2, garrix_coins = garrix_coins - $2 WHERE id = $1"
         await self.bot.database.execute(query, ctx.author.id, amt)
         return await ctx.send(
-            embed=await success_embed(f"Successfully withdrew {amount} coins.")
+            embed=await success_embed(f"Successfully withdrew {amt} coins.")
         )
 
     @commands.command(
@@ -249,10 +255,17 @@ class Fun(commands.Cog):
                     "Can't deposit more than what you hold in your hand."
                 )
             )
+
+        if amt <= 0:
+            return await ctx.send(
+                embed=await failure_embed(
+                    f"Please specify a valid amount to deposit."
+                )
+            )
         query = "UPDATE users SET in_hand = in_hand - $2, garrix_coins = garrix_coins + $2 WHERE id = $1 "
         await self.bot.database.execute(query, ctx.author.id, amt)
         return await ctx.send(
-            embed=await success_embed(f"Successfully deposited {amount} coins.")
+            embed=await success_embed(f"Successfully deposited {amt} coins.")
         )
 
     @commands.command(help="Give Garrix coins to a member.")
@@ -270,13 +283,19 @@ class Fun(commands.Cog):
                     "Can't give more than what you hold in your hand. Try withdrawing if you have the balance"
                 )
             )
+        if amt <= 0:
+            return await ctx.send(
+                embed=await failure_embed(
+                    f"Please specify a valid amount to give."
+                )
+            )
         query = "UPDATE users SET in_hand = in_hand + $2 WHERE id = $1"
         await self.bot.database.execute(query, member.id, amt)
         query = "UPDATE users SET in_hand = in_hand - $2 WHERE id = $1"
         await self.bot.database.execute(query, ctx.author.id, amt)
         return await ctx.send(
             embed=await success_embed(
-                f"Successfully gave {amount} coins to {member.display_name}."
+                f"Successfully gave {amt} coins to {member.display_name}."
             )
         )
 
