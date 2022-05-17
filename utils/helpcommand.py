@@ -23,8 +23,8 @@ class HelpCommand(commands.HelpCommand):
 
         desk = "%s```dust\n%s```" % (
             _help,
-            self.clean_prefix
-            + command.qualified_name
+            self.context.clean_prefix
+            + command.qualified_name    
             + " "
             + command.signature.translate(str.maketrans("[]", "{}")),
         )
@@ -36,8 +36,8 @@ class HelpCommand(commands.HelpCommand):
     @property
     def opening_note(self):
         return (
-            f"Use `{self.clean_prefix}help [command]` for more info on a command.\n "
-            f"You can also use `{self.clean_prefix}help [category]` for more info on a category."
+            f"Use `{self.context.clean_prefix}help [command]` for more info on a command.\n "
+            f"You can also use `{self.context.clean_prefix}help [category]` for more info on a category."
         )
 
     def subcommand_not_found(self, command, string):
