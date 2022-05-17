@@ -131,7 +131,7 @@ class Extras(commands.Cog):
 
         embed.add_field(name=f"Permissions", value=f"{perms}", inline=False)
 
-        embed.set_thumbnail(url=member.avatar_url_as(size=256))
+        embed.set_thumbnail(url=member.display_avatar.with_size(256).url)
         embed.set_footer(text=f"ID: {member.id}")
         return await ctx.send(embed=embed)
 
