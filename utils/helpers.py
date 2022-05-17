@@ -135,7 +135,7 @@ def get_user_level_data(total_xp: int):
     }
 
 
-def rank_picture(user: User, member_name: str, rank: int, img_data: str) -> BytesIO:
+def rank_picture(user: User, member_name: str, rank: int, img_data: BytesIO) -> BytesIO:
     """
     This function takes a user object, calculates its xp and levels and then returns an image which is a rank card
     that shows details about the user's achievement in pretty looking image.
