@@ -75,12 +75,12 @@ class Fun(commands.Cog):
         while lyrics == "":
             tries += 1
             lyrics = "\n".join(
-                lines[line_number : line_number + difficulty_lines.get(difficulty, 3)]
+                lines[line_number: line_number + difficulty_lines.get(difficulty, 3)]
             )
             if tries > 10:
                 break
         if not lyrics:
-            await ctx.command.reset_cooldown(ctx)
+            ctx.command.reset_cooldown(ctx)
             return await ctx.send("Some error occurred, please try again.")
 
         embed = disnake.Embed(
