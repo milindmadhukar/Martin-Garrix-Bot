@@ -16,9 +16,11 @@ class Extras(commands.Cog):
 
     @tasks.loop(minutes=2)
     async def change_status(self):
+        await self.bot.wait_until_ready()
         status = await self.bot.database.fetchrow(
             "SELECT alias, name FROM songs ORDER BY RANDOM() LIMIT 1"
         )
+        print(self.bot.database)
         if status is None:
             return
         alias = status.get("alias", "Martin Garrix")
