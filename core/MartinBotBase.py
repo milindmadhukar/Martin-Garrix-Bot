@@ -1,5 +1,4 @@
 #  -*- coding: utf-8 -*-
-import asyncio
 import datetime
 import os
 import pkgutil
@@ -103,6 +102,7 @@ class MartinGarrixBot(commands.Bot):
             else None
         )
         self.reddit_notifications_channel = (
+            
             self.get_channel(self.bot_config.REDDIT_NOTIFICATION_CHANNEL.value)
             if self.bot_config.REDDIT_NOTIFICATION_CHANNEL is not None
             else None
@@ -143,7 +143,7 @@ class MartinGarrixBot(commands.Bot):
         This function is triggered when the bot is connected properly to gateway and the bot cache is evenly populated.
         """
         await self.wait_until_ready()
-        self.set_configuration_attributes()  # This function will set the configuration attributes after the bot is properly ready.
+        self.set_configuration_attributes()
         print(
             f"----------Bot Initialization.-------------\n"
             f"Bot name: {self.user.name}\n"
@@ -314,6 +314,6 @@ class MartinGarrixBot(commands.Bot):
         """
 
         self.session = ClientSession()  # creating a ClientSession
-
+        await self.create_database_connection_pool()
 
         await super().login(*args, **kwargs)
