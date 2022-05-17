@@ -48,7 +48,7 @@ class MartinGarrixBot(commands.Bot):
         super().__init__(
             command_prefix=commands.when_mentioned_or("m.", "M.", "mg.", "Mg.", "MG."),
             intents=Intents.all(),
-            allowed_mentions=AllowedMentions(everyone=True, roles=False),
+            allowed_mentions=AllowedMentions(everyone=True, roles=True),
             case_insensitive=True,
             sync_commands_debug=True,
             help_command=HelpCommand(),
