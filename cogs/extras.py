@@ -159,7 +159,7 @@ class Extras(commands.Cog):
     async def serverinfo(self, ctx: commands.Context):
         guild = ctx.guild
         embed = disnake.Embed(title=guild.name, colour=disnake.Colour.blue())
-        embed.set_thumbnail(url=guild.icon_url)
+        embed.set_thumbnail(url=guild.icon.url)
         embed.add_field(name="Owner", value=guild.owner.mention)
         embed.add_field(name="Members", value=str(guild.member_count))
         embed.add_field(name="Region", value=str(guild.region).title())
