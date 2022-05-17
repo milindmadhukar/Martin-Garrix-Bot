@@ -1,0 +1,28 @@
+[tool.poetry]
+name = "martin-garrix-bot"
+version = "1.0.0"
+description = "A bot for martin garrix fan discord server."
+authors = ["milind-madhukar"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = ">=3.8, <4.0"
+disnake = "^2.5.1"
+asyncpraw = "^7.5.0"
+tabulate = "^0.8.9"
+psutil = "^5.9.0"
+Pillow = "^9.1.0"
+google-api-python-client = "^2.47.0"
+humanize = "^4.1.0"
+asyncpg = "^0.25.0"
+braceexpand = "^0.1.7"
+astunparse = "^1.6.3"
+"mystbin.py" = "2.1.2"
+
+[tool.poetry.dev-dependencies]
+black = "^22.3.0"
+pyright = "^1.1.247"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
