@@ -84,26 +84,6 @@ class MartinGarrixBot(commands.Bot):
         self.load_extension("jishaku")
         print(f"Loaded extension 'jishaku'")
 
-    async def login(self, *args, **kwargs) -> None:
-        """
-        This method logins the bot into Discord gateway.
-        """
-
-        self.session = ClientSession()  # creating a ClientSession
-
-        self.database = await Database.create_pool(
-            bot=self, uri=os.environ.get("POSTGRES_URI"), loop=self.loop
-        )
-
-        with open("./static/database.sql", mode="r") as r:
-            queries = r.read()
-
-        await self.database.execute(queries)
-
-        self.set_configuration_attributes()
-
-        await super().login(*args, **kwargs)
-
     def set_configuration_attributes(self):
         self.guild = self.get_guild(self.bot_config.GUILD_ID.value)
         if self.guild is None:
@@ -310,3 +290,30 @@ class MartinGarrixBot(commands.Bot):
         """
         print("Closing Aiohttp ClientSession...")
         await self.session.close()
+
+    async def create_database_connection_pool(self):
+        """
+        Stopid
+        :return:
+        """
+        self.database = await Database.create_pool(
+            bot=self, uri=os.environ.get("POSTGRES_URI"), loop=self.loop
+        )
+
+        with open("./static/database.sql", mode="r") as r:
+            queries = r.read()
+
+        await self.database.execute(queries)
+        return
+
+    async def login(self, *args, **kwargs) -> None:
+        """
+        This method logins the bot into Discord gateway.
+        """
+
+        self.session = ClientSession()  # creating a ClientSession
+
+        self.set_configuration_attributes()
+        self.loop.run_until_complete(self.create_database_connection_pool())
+
+        await super().login(*args, **kwargs)
