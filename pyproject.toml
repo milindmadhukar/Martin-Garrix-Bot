@@ -6,7 +6,7 @@ authors = ["milind-madhukar"]
 license = "MIT"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = ">=3.8, <4.0"
 disnake = "^2.5.1"
 asyncpraw = "^7.5.0"
 tabulate = "^0.8.9"
@@ -17,6 +17,7 @@ humanize = "^4.1.0"
 asyncpg = "^0.25.0"
 braceexpand = "^0.1.7"
 astunparse = "^1.6.3"
+"mystbin.py" = "2.1.2"
 
 [tool.poetry.dev-dependencies]
 black = "^22.3.0"
