@@ -71,7 +71,7 @@ class Database:
             user = User(bot=self.bot, id_=id_)
             await user.post()
             return user
-        return User(bot=self.bot, **record)
+        return User(bot=self.bot, id_=id_, **record)
 
     async def get_message(self, message_id: int) -> Message:
         query = """SELECT * FROM messages WHERE message_id = $1"""
