@@ -35,9 +35,11 @@ async def success_embed(title: str, description: str = None) -> disnake.Embed:
     """
     embed = disnake.Embed(
         title=f"<a:tick:810462879374770186>  {title}",
-        description=description if not None else disnake.Embed.Empty,
         colour=disnake.Colour.green(),
     )
+    if description is not None:
+        embed.description = description
+
     return embed
 
 
@@ -56,13 +58,15 @@ async def failure_embed(title: str, description: str = None) -> disnake.Embed:
     """
     embed = disnake.Embed(
         title=f"<a:cross:810462920810561556>  {title}",
-        description=description if not None else disnake.Embed.Empty,
         colour=disnake.Colour.red(),
     )
+
+    if description is not None:
+        embed.description = description
     return embed
 
 
-def parse_amount(amount: str, other_quantity: int) -> typing.Union[str, int]:
+def parse_amount(amount: str, other_quantity: int) ->  int:
     """
     This function parses an amount based the parameter amount and other quantity, if the amount is a numerical character
     but its datatype is a number, it will return that number in an integer, however, if the parameter amount is 'all'
@@ -75,6 +79,8 @@ def parse_amount(amount: str, other_quantity: int) -> typing.Union[str, int]:
         return other_quantity
     elif amount == "half":
         return other_quantity // 2
+
+    # TODO: Add else block and handle it.
 
 
 def humanize(xp: int):
