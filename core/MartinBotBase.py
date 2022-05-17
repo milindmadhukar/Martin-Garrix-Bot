@@ -1,4 +1,5 @@
 #  -*- coding: utf-8 -*-
+import asyncio
 import datetime
 import os
 import pkgutil
@@ -46,9 +47,7 @@ class MartinGarrixBot(commands.Bot):
         dotenv.load_dotenv(".env")
 
         super().__init__(
-            command_prefix=commands.when_mentioned_or(
-                kwargs.pop("command_prefix", ("m.", "M.", "mg.", "Mg.", "MG."))
-            ),
+            command_prefix=commands.when_mentioned_or("m.", "M.", "mg.", "Mg.", "MG."),
             intents=Intents.all(),
             allowed_mentions=AllowedMentions(everyone=True, roles=False),
             case_insensitive=True,
@@ -143,6 +142,8 @@ class MartinGarrixBot(commands.Bot):
         """
         This function is triggered when the bot is connected properly to gateway and the bot cache is evenly populated.
         """
+        await self.wait_until_ready()
+        self.set_configuration_attributes()  # This function will set the configuration attributes after the bot is properly ready.
         print(
             f"----------Bot Initialization.-------------\n"
             f"Bot name: {self.user.name}\n"
@@ -290,14 +291,15 @@ class MartinGarrixBot(commands.Bot):
         """
         print("Closing Aiohttp ClientSession...")
         await self.session.close()
+        return
 
     async def create_database_connection_pool(self):
         """
-        Stopid
-        :return:
+        |coro|
+        This method creates a postgres database connection and executes sql code in it.
         """
         self.database = await Database.create_pool(
-            bot=self, uri=os.environ.get("POSTGRES_URI"), loop=self.loop
+            bot=self, uri=os.environ.get("POSTGRES_URI"), min_connections=1, max_connections=1
         )
 
         with open("./static/database.sql", mode="r") as r:
@@ -313,7 +315,5 @@ class MartinGarrixBot(commands.Bot):
 
         self.session = ClientSession()  # creating a ClientSession
 
-        self.set_configuration_attributes()
-        self.loop.run_until_complete(self.create_database_connection_pool())
 
         await super().login(*args, **kwargs)
