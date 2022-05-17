@@ -33,6 +33,7 @@ class Notifications(commands.Cog):
 
     @tasks.loop(minutes=3)
     async def getRedditPosts(self):
+        await self.bot.wait_until_ready()
         try:
             subreddit = await self.reddit.subreddit("Martingarrix")
             new_post = subreddit.new(limit=5)
@@ -81,6 +82,7 @@ class Notifications(commands.Cog):
 
     @tasks.loop(minutes=3)
     async def getYtVids(self):
+        await self.bot.wait_until_ready()
         try:
             playlist_ids = [
                 "UU5H_KXkPbEsGs0tFt8R35mA",
