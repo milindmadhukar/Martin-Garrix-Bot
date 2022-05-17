@@ -181,10 +181,15 @@ class Extras(commands.Cog):
         users = await self.bot.database.fetchrow("""SELECT COUNT(*) FROM users""")
         users = users["count"]
         milind = ctx.guild.get_member(421608483629301772)
+        korta =  ctx.guild.get_member(736820906604888096)
         if milind is None:
             milind = "Milind Madhukar"
         else:
             milind = milind.mention
+        if korta is None:
+            korta = "Korta Po"
+        else:
+            korta = korta.mention
         cpu_usage = f"{psutil.cpu_percent()}%"
         ram_usage = f"{psutil.virtual_memory().percent}%"
         embed = disnake.Embed(
@@ -193,6 +198,7 @@ class Extras(commands.Cog):
             colour=disnake.Colour.blurple(),
         )
         embed.add_field(name="Creator", value=f"{milind}", inline=False)
+        embed.add_field(name="Contributor", value=f"{korta}", inline=False)
         embed.add_field(name="Total Users", value=users, inline=False)
         embed.add_field(
             name="Created At", value=bot.user.created_at.strftime("%b %d %Y, %H:%M:%S")

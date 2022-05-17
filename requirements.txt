@@ -1,43 +1,45 @@
-aiofiles==0.6.0; python_version >= "3.6"
-aiohttp==3.8.1; python_version >= "3.8" and python_full_version >= "3.8.0" and python_version < "4.0"
-aiosignal==1.2.0; python_version >= "3.6" and python_full_version >= "3.8.0"
-aiosqlite==0.17.0; python_version >= "3.6"
+aiofiles==0.6.0
+aiohttp==3.8.1
+aiosignal==1.2.0
+aiosqlite==0.17.0
 astunparse==1.6.3
-async-generator==1.10; python_version >= "3.6"
-async-timeout==4.0.2; python_version >= "3.6" and python_full_version >= "3.8.0"
-asyncio-extras==1.3.2; python_version >= "3.6"
-asyncpg==0.25.0; python_full_version >= "3.6.0"
-asyncpraw==7.5.0; python_version >= "3.6"
-asyncprawcore==2.3.0; python_version >= "3.6"
-attrs==21.4.0; python_version >= "3.6" and python_full_version >= "3.8.0"
+async-generator==1.10
+async-timeout==4.0.2
+asyncio-extras==1.3.2
+asyncpg==0.25.0
+asyncpraw==7.5.0
+asyncprawcore==2.3.0
+attrs==21.4.0
 braceexpand==0.1.7
-cachetools==5.1.0; python_version >= "3.7" and python_version < "4.0" and (python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6")
-certifi==2021.10.8; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
-charset-normalizer==2.0.12; python_version >= "3.6" and python_full_version >= "3.8.0"
-disnake==2.5.1; python_full_version >= "3.8.0"
-frozenlist==1.3.0; python_version >= "3.7" and python_full_version >= "3.8.0"
-google-api-core==2.7.3; python_version >= "3.6"
-google-api-python-client==2.47.0; python_version >= "3.6"
-google-auth-httplib2==0.1.0; python_version >= "3.6"
-google-auth==2.6.6; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
-googleapis-common-protos==1.56.1; python_version >= "3.6"
-httplib2==0.20.4; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.4.0" and python_version >= "3.6"
-humanize==4.1.0; python_version >= "3.7"
-idna==3.3; python_version >= "3.6" and python_full_version >= "3.8.0" and (python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6")
-multidict==6.0.2; python_version >= "3.7" and python_full_version >= "3.8.0"
-mystbin.py==2.1.2; python_version >= "3.8" and python_version < "4.0"
-pillow==9.1.0; python_version >= "3.7"
-protobuf==3.20.1; python_version >= "3.7"
-psutil==5.9.0; (python_version >= "2.6" and python_full_version < "3.0.0") or (python_full_version >= "3.4.0")
-pyasn1-modules==0.2.8; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
-pyasn1==0.4.8; python_version >= "3.6" and python_full_version < "3.0.0" and python_version < "4" and (python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6") or python_full_version >= "3.6.0" and python_version >= "3.6" and python_version < "4" and (python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6")
-pyparsing==3.0.9; python_full_version >= "3.6.8" and python_version >= "3.6"
-requests==2.27.1; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
-rsa==4.8; python_version >= "3.6" and python_version < "4" and (python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6")
-six==1.16.0; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version >= "3.6"
+cachetools==5.1.0
+certifi==2021.10.8
+charset-normalizer==2.0.12
+disnake==2.5.1
+frozenlist==1.3.0
+google-api-core==2.7.3
+google-api-python-client==2.47.0
+google-auth==2.6.6
+google-auth-httplib2==0.1.0
+googleapis-common-protos==1.56.1
+httplib2==0.20.4
+humanize==4.1.0
+idna==3.3
+import-expression==1.1.4
+multidict==6.0.2
+mystbin.py==2.1.2
+Pillow==9.1.0
+protobuf==3.20.1
+psutil==5.9.0
+pyasn1==0.4.8
+pyasn1-modules==0.2.8
+pyparsing==3.0.9
+python-dotenv==0.20.0
+requests==2.27.1
+rsa==4.8
+six==1.16.0
 tabulate==0.8.9
-typing-extensions==4.2.0; python_version >= "3.7"
-update-checker==0.18.0; python_version >= "3.6"
-uritemplate==4.1.1; python_version >= "3.6"
-urllib3==1.26.9; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.6.0" and python_version < "4" and python_version >= "3.6"
-yarl==1.7.2; python_version >= "3.6" and python_full_version >= "3.8.0"
+typing-extensions==4.2.0
+update-checker==0.18.0
+uritemplate==4.1.1
+urllib3==1.26.9
+yarl==1.7.2
