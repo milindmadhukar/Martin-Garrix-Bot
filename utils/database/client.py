@@ -26,7 +26,7 @@ class Database:
         self._pool = pool
         self._loop = loop or asyncio
         self.timeout = timeout
-        self._rate_limit = asyncio.Semaphore(value=self._pool._maxsize, loop=self._loop)
+        self._rate_limit = asyncio.Semaphore(value=self._pool._maxsize)
 
     @classmethod
     async def create_pool(
