@@ -1,11 +1,19 @@
-import discord
-from discord.ext import commands
+import disnake
+from disnake.ext import commands
 import itertools
+
+__all__ = ("HelpCommand",)
 
 
 class HelpCommand(commands.HelpCommand):
-    def custom_embed(self, **kwargs):
-        return discord.Embed(color=discord.Colour.teal(), **kwargs).set_footer(text=f"Called by: {self.context.author}")
+    """
+    This class subclasses :class:`commands.HelpCommand` and extra features to it and a new design catered to this bot.
+    """
+
+    def custom_embed(self, **kwargs) -> disnake.Embed:
+        return disnake.Embed(color=disnake.Colour.teal(), **kwargs).set_footer(
+            text=f"Called by: {self.context.author}"
+        )
 
     def command_desk(self, command: commands.Command, add_example=False):
         if command.help:
@@ -15,8 +23,8 @@ class HelpCommand(commands.HelpCommand):
 
         desk = "%s```dust\n%s```" % (
             _help,
-            self.clean_prefix
-            + command.qualified_name
+            self.context.clean_prefix
+            + command.qualified_name    
             + " "
             + command.signature.translate(str.maketrans("[]", "{}")),
         )
@@ -27,7 +35,10 @@ class HelpCommand(commands.HelpCommand):
 
     @property
     def opening_note(self):
-        return f"Use `{self.clean_prefix}help [command]` for more info on a command.\n You can also use `{self.clean_prefix}help [category]` for more info on a category."
+        return (
+            f"Use `{self.context.clean_prefix}help [command]` for more info on a command.\n "
+            f"You can also use `{self.context.clean_prefix}help [category]` for more info on a category."
+        )
 
     def subcommand_not_found(self, command, string):
         if isinstance(command, commands.Group) and len(command.all_commands) > 0:
@@ -40,8 +51,10 @@ class HelpCommand(commands.HelpCommand):
         return cog.qualified_name if cog else "No Category"
 
     async def send_bot_help(self, mapping):
-        embed = self.custom_embed(title=f"{self.context.bot.user.name} Help.", description=self.opening_note)
-        embed.set_thumbnail(url=self.context.bot.user.avatar_url)
+        embed = self.custom_embed(
+            title=f"{self.context.bot.user.name} Help.", description=self.opening_note
+        )
+        embed.set_thumbnail(url=self.context.bot.user.display_avatar.url)
         bot_commands = await self.filter_commands(
             self.context.bot.commands, sort=True, key=self.__get_cog
         )
@@ -67,7 +80,7 @@ class HelpCommand(commands.HelpCommand):
         return await self.context.send(embed=embed)
 
     async def send_group_help(self, group: commands.Group):
-        if group.name in ['config']:
+        if group.name in ["config"]:
             return await self.context.invoke(group)
         embed = self.custom_embed(
             title=" | ".join([group.name] + group.aliases),
@@ -83,22 +96,11 @@ class HelpCommand(commands.HelpCommand):
         return await self.context.send(embed=embed)
 
     async def send_command_help(self, command: commands.Command):
-        if command.name in ['leaderboard', 'quiz']:
+        if command.name in ["leaderboard", "quiz"]:
             return await self.context.invoke(command)
 
-        embed = self.custom_embed(title=" | ".join([command.name] + command.aliases),
-                                  description=self.command_desk(command, add_example=True))
+        embed = self.custom_embed(
+            title=" | ".join([command.name] + command.aliases),
+            description=self.command_desk(command, add_example=True),
+        )
         return await self.context.send(embed=embed)
-
-
-class Help(commands.Cog):
-    def __init__(self, bot):
-        self.bot = bot
-        self._original_help_command = bot.help_command
-        bot.help_command = HelpCommand()
-        bot.help_command.cog = self
-        bot.get_command("help").hidden = True
-
-
-def setup(bot):
-    bot.add_cog(Help(bot))
