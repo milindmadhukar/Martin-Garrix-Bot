@@ -239,7 +239,7 @@ class Extras(commands.Cog):
 
             players = resp["players"]
             for player in players:
-                await self.bot.database.execute(query, player["id"], player["xp"], player["message_count"])
+                await self.bot.database.execute(query, int(player["id"]), int(player["xp"]), int(player["message_count"])
             page += 1
 
         return await ctx.send("Synced the db.")
