@@ -8,6 +8,8 @@ from utils.checks import is_admin_check, is_milind_check
 
 from core.MartinBotBase import MartinGarrixBot
 
+from .utils.eightball import get_eightball_embed
+
 
 class Extras(commands.Cog):
     def __init__(self, bot: MartinGarrixBot):
@@ -33,46 +35,35 @@ class Extras(commands.Cog):
             activity=disnake.Activity(type=disnake.ActivityType.listening, name=status)
         )
 
+
     @commands.command(
         help="8 ball command to make decisions",
         aliases=["8ball", "magicball"],
     )
     async def eightball(self, ctx: commands.Context, *, question: str):
-        responses = [
-            "As I see it, yes.",
-            "Ask again later.",
-            "Better not tell you now.",
-            "Cannot predict now.",
-            "Concentrate and ask again.",
-            "Don’t count on it.",
-            "It is certain.",
-            "It is decidedly so.",
-            "Most likely.",
-            "My reply is no.",
-            "My sources say no.",
-            "Outlook not so good.",
-            "Outlook good.",
-            "Reply hazy, try again.",
-            "Signs point to yes.",
-            "Very doubtful.",
-            "Without a doubt.",
-            "Yes.",
-            "Yes – definitely.",
-            "You may rely on it.",
-        ]
-        embed = (
-            disnake.Embed(title="The Magic 8 Ball \U0001F3B1 replies")
-            .add_field(name="Question", value=question, inline=False)
-            .add_field(name="Answer", value=random.choice(responses), inline=False)
-        )
+        return await ctx.send(embed=get_eightball_embed(question))
+    
+    @commands.slash_command(
+        name="8ball",
+        description="8 ball command to make decisions",
+    )
+    async def eightball_slash(self, inter: disnake.ApplicationCommandInteraction, question: str):
+        return await inter.response.send_message(embed=get_eightball_embed(question))
 
-        return await ctx.send(embed=embed)
 
     @commands.command(
         help="Check the latency of the bot from the server.", aliases=["latency"]
     )
     async def ping(self, ctx: commands.Context):
         await ctx.send(f"**Pong! {round(self.bot.latency * 1000)}ms** \U0001F3D3")
+    
+    @commands.slash_command(
+        name="ping",
+        description="Check the latency of the bot from the server."
+    )
+    async def ping_slash(self, inter: disnake.ApplicationCommandInteraction):
+        await inter.response.send_message(f"**Pong! {round(self.bot.latency * 1000)}ms** \U0001F3D3")
+        
 
     @commands.command(
         help="Get the avatar of a member.",
