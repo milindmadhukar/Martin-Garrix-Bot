@@ -1,4 +1,3 @@
-#  -*- coding: utf-8 -*-
 import datetime
 import os
 import pkgutil
@@ -124,6 +123,12 @@ class MartinGarrixBot(commands.Bot):
             if self.bot_config.EDIT_LOGS_CHANNEL is not None
             else None
         )
+        self.bots_channel = (
+            self.get_channel(self.bot_config.BOTS_CHANNEL.value)
+            if self.bot_config.BOTS_CHANNEL is not None
+            else None
+        )
+
         self.staff_role = self.guild.get_role(self.bot_config.STAFF_ROLE.value)
         self.moderator_role = self.guild.get_role(self.bot_config.MODERATOR_ROLE.value)
         self.admin_role = self.guild.get_role(self.bot_config.ADMIN_ROLE.value)
@@ -138,6 +143,7 @@ class MartinGarrixBot(commands.Bot):
             self.bot_config.GARRIX_NEWS_ROLE.value
         )
         self.xp_multiplier = self.bot_config.XP_MULTIPLIER.value
+        self.true_garrixer_level = self.bot_config.TRUE_GARRIXER_LEVEL.value
 
     async def on_ready(self):
         """

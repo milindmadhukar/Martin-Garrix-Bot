@@ -11,6 +11,7 @@ __all = (
     "failure_embed",
     "parse_amount",
     "rank_picture",
+    "get_user_level"
     "get_user_level_data",
     "f_xp_for_next_level",
 )
@@ -122,18 +123,22 @@ def get_total_xp(lvl: int) -> int:
 
     return total_sum
 
+def get_user_level(total_xp: int) -> int:
+    lvl = 0
+    total_sum = 0
+    while total_sum <= total_xp:
+        total_sum += f_xp_for_next_level(lvl)
+        lvl += 1
+
+    return lvl - 1
+
 
 def get_user_level_data(total_xp: int):
     if not isinstance(total_xp, int):
         raise TypeError(
             f"Parameter 'total_xp' required an integer ( int ) not {type(total_xp)}"
         )
-    lvl = 0
-    total_sum = 0
-    while total_sum <= total_xp:
-        total_sum += f_xp_for_next_level(lvl)
-        lvl += 1
-    lvl -= 1
+    lvl = get_user_level(total_xp)
     return {
         "lvl": lvl,
         "xp_for_next_lvl": f_xp_for_next_level(lvl),

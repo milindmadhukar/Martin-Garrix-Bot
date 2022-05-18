@@ -4,6 +4,7 @@ import psutil
 from disnake.ext import commands, tasks
 import random
 import platform
+import requests
 
 # from mee6_py_api import API as Mee6API
 
@@ -229,7 +230,20 @@ class Extras(commands.Cog):
     @commands.command(help="Gives you the info about the bot and its creator.")
     async def sync_mee6(self, ctx: commands.Context):
         mee6_url = "https://mee6.xyz/api/plugins/levels/leaderboard/690950056202731521"
-        resp = await aiohttp.request("GET", mee6_url, params={"page": 0})
+        query = "UPDATE users SET total_xp = $2, messages_sent = $3 WHERE id = $1"
+        page = 0
+        while True:
+            resp = requests.get(mee6_url, params={'page':page}).json()
+            if len(resp["players"]) == 0:
+                break
+
+            players = resp["players"]
+            for player in players:
+                await self.bot.database.execute(query, player["id"], player["xp"], player["message_count"])
+            page += 1
+
+        return await ctx.send("Synced the db.")
+
 
 
 def setup(bot):

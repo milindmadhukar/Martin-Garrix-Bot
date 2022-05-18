@@ -7,6 +7,7 @@ __all__ = ("Message",)
 
 from disnake.ext import commands
 
+import utils.helpers as helpers
 
 class Message:
     def __init__(
@@ -59,6 +60,8 @@ class Message:
         if user.last_xp_added is not None:
             difference = now - user.last_xp_added
         if difference > datetime.timedelta(minutes=1) or user.last_xp_added is None:
+            before_message_level = helpers.get_user_level(user.total_xp)
+            xp_for_next_level = helpers.f_xp_for_next_level(before_message_level)
             user.total_xp += xp * self.xp_multiplier
             user.last_xp_added = now
             await bot.database.execute(
@@ -67,6 +70,14 @@ class Message:
                 user.last_xp_added,
                 user.id,
             )
+            if user.total_xp > xp_for_next_level:
+                msg = f"GG {message.author.mention}, you just reached level {before_message_level + 1}! <:garrix_pog:976430496965869568> "
+                if before_message_level + 1 == bot.true_garrixer_level and bot.true_garrixer_role not in message.author.roles:
+                    msg += f"\nCongrats on reaching level {bot.true_garrixer_level}. You have been given the True Garrixer role. <:garrix_wink:811961920977764362>"
+                    await message.author.add_roles(bot.true_garrixer_role, reason=f"Reached level {bot.true_garrixer_level}")
+                await bot.bots_channel.send(msg)
+                    
+
         await bot.database.execute(
             "UPDATE users SET messages_sent = messages_sent + 1 WHERE id = $1", user.id
         )
