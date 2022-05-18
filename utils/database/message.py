@@ -71,7 +71,7 @@ class Message:
                 user.id,
             )
             if user.total_xp > xp_for_next_level:
-                msg = f"GG {message.author.mention}, you just reached level {before_message_level + 1}! <:garrix_pog:976430496965869568> "
+                msg = f"GG {message.author}, you just reached level {before_message_level + 1}! <:garrix_pog:976430496965869568> "
                 if before_message_level + 1 == bot.true_garrixer_level and bot.true_garrixer_role not in message.author.roles:
                     msg += f"\nCongrats on reaching level {bot.true_garrixer_level}. You have been given the True Garrixer role. <:garrix_wink:811961920977764362>"
                     await message.author.add_roles(bot.true_garrixer_role, reason=f"Reached level {bot.true_garrixer_level}")
