@@ -61,18 +61,18 @@ class Message:
             difference = now - user.last_xp_added
         if difference > datetime.timedelta(minutes=1) or user.last_xp_added is None:
             before_message_level = helpers.get_user_level(user.total_xp)
-            xp_for_next_level = helpers.f_xp_for_next_level(before_message_level)
             user.total_xp += xp * self.xp_multiplier
             user.last_xp_added = now
+            after_message_level = helpers.get_user_level(user.total_xp)
             await bot.database.execute(
                 "UPDATE users SET total_xp = $1, last_xp_added = $2 WHERE id = $3",
                 user.total_xp,
                 user.last_xp_added,
                 user.id,
             )
-            if user.total_xp > xp_for_next_level:
-                msg = f"GG {message.author}, you just reached level {before_message_level + 1}! <:garrix_pog:976430496965869568> "
-                if before_message_level + 1 == bot.true_garrixer_level and bot.true_garrixer_role not in message.author.roles:
+            if before_message_level != after_message_level:
+                msg = f"GG {message.author.mention}, you just reached level {after_message_level}! <:garrix_pog:976430496965869568> "
+                if after_message_level >= bot.true_garrixer_level and bot.true_garrixer_role not in message.author.roles:
                     msg += f"\nCongrats on reaching level {bot.true_garrixer_level}. You have been given the True Garrixer role. <:garrix_wink:811961920977764362>"
                     await message.author.add_roles(bot.true_garrixer_role, reason=f"Reached level {bot.true_garrixer_level}")
                 await bot.bots_channel.send(msg)
