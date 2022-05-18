@@ -4,6 +4,8 @@ import asyncio
 
 from utils.database.tag import Tag
 
+from utils.checks import is_admin, is_milind, is_staff, is_true_garrixer_check
+
 
 class TagCommands(commands.Cog, name="Tags"):
     def __init__(self, bot):
@@ -54,7 +56,7 @@ class TagCommands(commands.Cog, name="Tags"):
         return
 
     @tag.command()
-    @commands.check_any(commands.has_permissions(administrator=True))
+    @is_true_garrixer_check()
     async def create(
         self, ctx: commands.Context, name: lambda inp: inp.lower(), *, content: str
     ):
@@ -130,6 +132,7 @@ class TagCommands(commands.Cog, name="Tags"):
         await ctx.send("Tags sent in DMs.")
 
     @tag.command()
+    @is_true_garrixer_check()
     async def edit(
         self, ctx: commands.Context, name: lambda inp: inp.lower(), *, content: str
     ):
@@ -137,7 +140,7 @@ class TagCommands(commands.Cog, name="Tags"):
         Edit a tag.
         """
         content = await commands.clean_content().convert(ctx=ctx, argument=content)
-
+        member = ctx.member
         tag = await self.bot.database.get_tag(name=name)
 
         if tag is None:
@@ -146,18 +149,21 @@ class TagCommands(commands.Cog, name="Tags"):
             return await message.delete(delay=10.0)
 
         if tag.creator_id != ctx.author.id:
-            return await ctx.send("You don't have permission to do that.")
+            if (not is_admin(member)) or (not is_milind(member)):
+                return await ctx.send("You don't have permission to do that.")
 
         await tag.update(content=content)
         await ctx.send("You have successfully edited your tag.")
         return
 
     @tag.command()
+    @is_true_garrixer_check()
     async def delete(self, ctx: commands.Context, *, name: lambda inp: inp.lower()):
         """
         Delete an existing tag.
         """
         tag = await self.bot.database.get_tag(name=name)
+        member = ctx.member
 
         if tag is None:
             await ctx.message.delete(delay=10.0)
@@ -165,7 +171,8 @@ class TagCommands(commands.Cog, name="Tags"):
             return await message.delete(delay=10.0)
 
         if tag.creator_id != ctx.author.id:
-            return await ctx.send("You don't have permission to do that.")
+            if (not is_staff(member)) or (not is_milind(member)):
+                return await ctx.send("You don't have permission to do that.")
 
         await tag.delete()
         await ctx.send("You have successfully deleted your tag.")
@@ -194,6 +201,7 @@ class TagCommands(commands.Cog, name="Tags"):
         return
 
     @tag.command()
+    @is_true_garrixer_check()
     async def rename(
         self,
         ctx: commands.Context,
@@ -206,6 +214,7 @@ class TagCommands(commands.Cog, name="Tags"):
         """
 
         new_name = await commands.clean_content().convert(ctx=ctx, argument=new_name)
+        member = ctx.member
 
         tag = await self.bot.database.get_tag(name=name)
 
@@ -215,7 +224,8 @@ class TagCommands(commands.Cog, name="Tags"):
             return await message.delete(delay=10.0)
 
         if tag.creator_id != ctx.author.id:
-            return await ctx.send("You don't have permission to do that.")
+            if (not is_admin(member)) or (not is_milind(member)):
+                return await ctx.send("You don't have permission to do that.")
 
         await tag.rename(new_name=new_name)
         await ctx.send("You have successfully renamed your tag.")

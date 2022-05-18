@@ -1,4 +1,3 @@
-import typing
 from io import BytesIO
 from itertools import cycle
 
@@ -65,7 +64,6 @@ async def failure_embed(title: str, description: str = None) -> disnake.Embed:
         embed.description = description
     return embed
 
-
 def parse_amount(amount: str, other_quantity: int) ->  int:
     """
     This function parses an amount based the parameter amount and other quantity, if the amount is a numerical character
@@ -81,8 +79,6 @@ def parse_amount(amount: str, other_quantity: int) ->  int:
         return other_quantity // 2
     else:
         return -1
-
-    # TODO: Add else block and handle it.
 
 
 def humanize(xp: int):

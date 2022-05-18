@@ -299,6 +299,8 @@ class Fun(commands.Cog):
             )
         )
 
+        # TODO: Give and withdraw coins by admins
+
 
 def setup(bot):
     bot.add_cog(Fun(bot))

@@ -86,6 +86,8 @@ class MartinGarrixBot(commands.Bot):
         self.guild = self.get_guild(self.bot_config.GUILD_ID.value)
         if self.guild is None:
             print("Could not find guild.")
+            return
+
         self.modlogs_channel = (
             self.get_channel(self.bot_config.MODLOGS_CHANNEL.value)
             if self.bot_config.MODLOGS_CHANNEL is not None
@@ -122,8 +124,7 @@ class MartinGarrixBot(commands.Bot):
             if self.bot_config.EDIT_LOGS_CHANNEL is not None
             else None
         )
-        self.team_role = self.guild.get_role(self.bot_config.TEAM_ROLE.value)
-        self.support_role = self.guild.get_role(self.bot_config.SUPPORT_ROLE.value)
+        self.staff_role = self.guild.get_role(self.bot_config.STAFF_ROLE.value)
         self.moderator_role = self.guild.get_role(self.bot_config.MODERATOR_ROLE.value)
         self.admin_role = self.guild.get_role(self.bot_config.ADMIN_ROLE.value)
         self.garrixer_role = self.guild.get_role(self.bot_config.GARRXIER_ROLE.value)
