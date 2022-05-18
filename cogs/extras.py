@@ -1,8 +1,13 @@
+import aiohttp
 import disnake
 import psutil
 from disnake.ext import commands, tasks
 import random
 import platform
+
+# from mee6_py_api import API as Mee6API
+
+from utils.checks import is_admin_check, is_milind_check
 
 from core.MartinBotBase import MartinGarrixBot
 
@@ -33,9 +38,9 @@ class Extras(commands.Cog):
 
     @commands.command(
         help="8 ball command to make decisions",
-        aliases=["8ball", "magicball", "eightball"],
+        aliases=["8ball", "magicball"],
     )
-    async def _8ball(self, ctx: commands.Context, *, question: str):
+    async def eightball(self, ctx: commands.Context, *, question: str):
         responses = [
             "As I see it, yes.",
             "Ask again later.",
@@ -134,7 +139,8 @@ class Extras(commands.Cog):
         embed.set_footer(text=f"ID: {member.id}")
         return await ctx.send(embed=embed)
 
-    @commands.has_permissions(administrator=True)
+    @is_milind_check()
+    @commands.check_any(is_admin_check(), is_milind_check())
     @commands.command(help="Command to create an embed in the chat.", aliases=["em"])
     async def embed(
         self, ctx: commands.Context, title: str, *, description: str = None
@@ -145,8 +151,8 @@ class Extras(commands.Cog):
             embed.description = description
         return await ctx.send(embed=embed)
 
+    @commands.check_any(is_admin_check(), is_milind_check())
     @commands.command(help="Send a message in a channel.", aliases=["send"])
-    @commands.has_permissions(administrator=True)
     async def say(self, ctx, channel: disnake.TextChannel, *, message: str = None):
         if message is None:
             await ctx.send("Please provide a message.")
@@ -168,7 +174,10 @@ class Extras(commands.Cog):
         embed.add_field(name="Voice Channels", value=str(len(guild.voice_channels)))
         embed.add_field(name="Roles", value=str(len(guild.roles)))
         embed.add_field(name="Boosters", value=str(guild.premium_subscription_count))
-        embed.add_field(name="File Size Limit", value=str(guild.filesize_limit//(1024*1024)) + "mb")
+        embed.add_field(
+            name="File Size Limit",
+            value=str(guild.filesize_limit // (1024 * 1024)) + "mb",
+        )
         embed.set_footer(text=f"Guild ID : {guild.id}")
         if guild.icon is not None:
             embed.set_thumbnail(url=guild.icon.url)
@@ -181,7 +190,7 @@ class Extras(commands.Cog):
         users = await self.bot.database.fetchrow("""SELECT COUNT(*) FROM users""")
         users = users["count"]
         milind = ctx.guild.get_member(421608483629301772)
-        korta =  ctx.guild.get_member(736820906604888096)
+        korta = ctx.guild.get_member(736820906604888096)
         if milind is None:
             milind = "Milind Madhukar"
         else:
@@ -215,6 +224,12 @@ class Extras(commands.Cog):
         embed.set_image(url=bot.user.display_avatar.url)
 
         return await ctx.send(embed=embed)
+
+    @is_milind_check()
+    @commands.command(help="Gives you the info about the bot and its creator.")
+    async def sync_mee6(self, ctx: commands.Context):
+        mee6_url = "https://mee6.xyz/api/plugins/levels/leaderboard/690950056202731521"
+        resp = await aiohttp.request("GET", mee6_url, params={"page": 0})
 
 
 def setup(bot):
