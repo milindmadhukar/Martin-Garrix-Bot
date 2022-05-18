@@ -140,7 +140,7 @@ class TagCommands(commands.Cog, name="Tags"):
         Edit a tag.
         """
         content = await commands.clean_content().convert(ctx=ctx, argument=content)
-        member = ctx.member
+        member = ctx.author
         tag = await self.bot.database.get_tag(name=name)
 
         if tag is None:
@@ -163,7 +163,7 @@ class TagCommands(commands.Cog, name="Tags"):
         Delete an existing tag.
         """
         tag = await self.bot.database.get_tag(name=name)
-        member = ctx.member
+        member = ctx.author
 
         if tag is None:
             await ctx.message.delete(delay=10.0)
@@ -214,7 +214,7 @@ class TagCommands(commands.Cog, name="Tags"):
         """
 
         new_name = await commands.clean_content().convert(ctx=ctx, argument=new_name)
-        member = ctx.member
+        member = ctx.author
 
         tag = await self.bot.database.get_tag(name=name)
 
