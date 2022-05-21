@@ -4,7 +4,23 @@ import random
 import psutil
 import platform
 
-from utils.helpers import failure_embed
+from disnake.ext.commands import (
+    MissingPermissions,
+    BotMissingPermissions,
+    MissingRole,
+    MissingAnyRole,
+    BotMissingRole,
+    BotMissingAnyRole,
+    MemberNotFound,
+    CommandNotFound,
+    CheckFailure,
+    PrivateMessageOnly,
+    CommandOnCooldown,
+    BadUnionArgument,
+    ConversionError,
+    NoPrivateMessage,
+    MissingRequiredArgument,
+)
 
 __all = (
     "get_eightball_embed",
@@ -13,9 +29,49 @@ __all = (
     "get_serverinfo_embed",
     "get_info_embed",
     "get_lyrics_embed",
+    "get_error_message",
 )
 
 from .database.user import User
+
+
+def get_error_message(error) -> str:
+    msg = None
+    if isinstance(error, BotMissingPermissions):
+        msg = f"The bot is missing these permissions to do this command:\n{error.missing_permissions}"
+
+    elif isinstance(error, MissingPermissions):
+        msg = f"You are missing these permissions to do this command."
+
+    elif isinstance(
+        error,
+        (
+            BadUnionArgument,
+            CommandOnCooldown,
+            PrivateMessageOnly,
+            NoPrivateMessage,
+            MissingRequiredArgument,
+            ConversionError,
+        ),
+    ):
+        msg = str(error)
+
+    elif isinstance(error, (BotMissingAnyRole, BotMissingRole)):
+        msg = f"I am missing these roles to do this command: \n{error.missing_roles or [error.missing_role]}"
+
+    elif isinstance(error, (MissingRole, MissingAnyRole)):
+        msg = f"I am missing these roles to do this command: \n{error.missing_roles or [error.missing_role]}"
+
+    elif isinstance(error, CommandNotFound):
+        msg = str(error)
+
+    elif isinstance(error, MemberNotFound):
+        msg = str(error)
+
+    elif isinstance(error, CheckFailure):
+        msg = f"You are missing these permissions to do this command."
+
+    return msg
 
 
 def get_eightball_embed(question: str) -> disnake.Embed:

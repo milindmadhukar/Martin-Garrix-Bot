@@ -18,7 +18,6 @@ __all = (
 
 templates = cycle(["red", "green", "pink", "yellow"])
 
-
 async def success_embed(title: str, description: str = None) -> disnake.Embed:
     """
     |coro|

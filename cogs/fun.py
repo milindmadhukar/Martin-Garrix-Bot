@@ -440,6 +440,56 @@ class Fun(commands.Cog):
             ctx.command.reset_cooldown(ctx)
             print(error)
 
+    
+    @commands.cooldown(1, 3 * 60 * 60, commands.BucketType.user)
+    @commands.slash_command(name="rob", description="Steal Garrix coins from another member")
+    async def rob_slash(self, inter: disnake.ApplicationCommandInteraction, member: disnake.Member = commands.Param(description="Enter the member to rob.")):
+        if member.id == inter.author.id:
+            inter.command.reset_cooldown(ctx)
+            return await ctx.send(embed=await failure_embed("You can't rob yourself."))
+
+        query = "SELECT in_hand FROM users WHERE id = $1"
+        record = await self.bot.database.fetchrow(query, member.id)
+        in_hand = record["in_hand"]
+        if in_hand < 200:
+            ctx.command.reset_cooldown(ctx)
+            return await ctx.send(
+                embed=await failure_embed(
+                    "Member needs to have atleast 200 Garrix coins in hand to be robbed."
+                )
+            )
+        is_going_to_be_robbed = random.choice([True, False, False, False, False])
+        # is_going_to_be_robbed = True
+        if is_going_to_be_robbed:
+            amount_robbed = random.randint(200, in_hand)
+            query = "UPDATE users SET in_hand = in_hand - $2 WHERE id = $1"
+            await self.bot.database.execute(query, member.id, amount_robbed)
+            query = "UPDATE users SET in_hand = in_hand + $2 WHERE id = $1"
+            await self.bot.database.execute(query, ctx.author.id, amount_robbed)
+            return await ctx.send(
+                f"Successfully robbed {amount_robbed} Garrix coins from {member.mention}"
+            )
+        else:
+            query = "UPDATE users SET in_hand = in_hand - 200 WHERE id = $1"
+            await self.bot.database.execute(query, ctx.author.id)
+            return await ctx.message.reply(
+                "🚔 You have been caught stealing and lost 200 Garrix coins"
+            )
+
+    @rob.error
+    async def rob_error(self, ctx: commands.Context, error):
+        if isinstance(error, commands.CommandOnCooldown):
+            embed = disnake.Embed(
+                title="You are currently on cooldown.",
+                description=f" Woah theif, you can only rob once in 3 hours.\nTry again "
+                f"in {int(error.retry_after)} seconds",
+                color=disnake.Colour.red(),
+            )
+            return await ctx.send(embed=embed)
+        else:
+            ctx.command.reset_cooldown(ctx)
+            print(error)
+
 
 def setup(bot):
     bot.add_cog(Fun(bot))

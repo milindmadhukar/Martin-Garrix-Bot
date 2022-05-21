@@ -11,29 +11,13 @@ import dotenv
 from aiohttp import ClientSession
 from disnake import AllowedMentions, Intents, Message
 from disnake.ext import commands
-from disnake.ext.commands import (
-    MissingPermissions,
-    BotMissingPermissions,
-    MissingRole,
-    MissingAnyRole,
-    BotMissingRole,
-    BotMissingAnyRole,
-    MemberNotFound,
-    CommandNotFound,
-    CheckFailure,
-    PrivateMessageOnly,
-    CommandOnCooldown,
-    BadUnionArgument,
-    ConversionError,
-    NoPrivateMessage,
-    MissingRequiredArgument,
-)
 
 from utils import failure_embed
 from utils.database import Message
 from utils.database.client import Database
 from utils.enums import Config
 from utils.helpcommand import HelpCommand
+from utils.command_helpers import get_error_message
 
 
 class MartinGarrixBot(commands.Bot):
@@ -103,7 +87,6 @@ class MartinGarrixBot(commands.Bot):
             else None
         )
         self.reddit_notifications_channel = (
-            
             self.get_channel(self.bot_config.REDDIT_NOTIFICATION_CHANNEL.value)
             if self.bot_config.REDDIT_NOTIFICATION_CHANNEL is not None
             else None
@@ -206,58 +189,24 @@ class MartinGarrixBot(commands.Bot):
             await self.edit_logs_channel.send(embed=embed)
 
     async def on_command_error(self, ctx: commands.Context, error):
-        if hasattr(ctx.command, "on_error"):
-            return
-
-        elif isinstance(error, BotMissingPermissions):
-            message = await ctx.send(
-                f"The bot is missing these permissions to do this command:\n{error.missing_permissions}"
-            )
-
-        elif isinstance(error, MissingPermissions):
-            message = await ctx.send(
-                f"You are missing these permissions to do this command."
-            )
-
-        elif isinstance(
-            error,
-            (
-                BadUnionArgument,
-                CommandOnCooldown,
-                PrivateMessageOnly,
-                NoPrivateMessage,
-                MissingRequiredArgument,
-                ConversionError,
-            ),
-        ):
-            message = await ctx.send(str(error))
-
-        elif isinstance(error, (BotMissingAnyRole, BotMissingRole)):
-            message = await ctx.send(
-                f"I am missing these roles to do this command: \n{error.missing_roles or [error.missing_role]}"
-            )
-
-        elif isinstance(error, (MissingRole, MissingAnyRole)):
-            message = await ctx.send(
-                f"I am missing these roles to do this command: \n{error.missing_roles or [error.missing_role]}"
-            )
-
-        elif isinstance(error, CommandNotFound):
-            message = await ctx.send(str(error))
-
-        elif isinstance(error, MemberNotFound):
-            message = await ctx.send(str(error))
-
-        elif isinstance(error, CheckFailure):
-            message = await ctx.send(
-                f"You are missing these permissions to do this command."
-            )
-
-        else:
+        msg = get_error_message(error)
+        if msg is None:
             return await self.handle_error(ctx, error)
 
+        message = await ctx.send(msg)
         await ctx.message.delete(delay=20.0)
         return await message.delete(delay=20.0)
+
+    async def on_slash_command_error(
+        self, inter: disnake.ApplicationCommandInteraction, error
+    ) -> None:
+        msg = get_error_message(error)
+        if msg is None:
+            return await self.handle_slash_error(inter, error)
+
+        return await inter.response.send_message(
+            embed=await failure_embed(msg), ephemeral=True
+        )
 
     async def handle_error(self, ctx: commands.Context, error) -> disnake.Message:
         print(error)
@@ -289,6 +238,41 @@ class MartinGarrixBot(commands.Bot):
                 "Some error occurred.",
                 "The developer has been informed and should fix it soon.",
             )
+        )
+
+    async def handle_slash_error(
+        self, inter: disnake.ApplicationCommandInteraction, error
+    ):
+        print(error)
+        error_channel = self.get_channel(int(os.environ.get("ERROR_CHANNEL")))
+        trace = traceback.format_exception(type(error), error, error.__traceback__)
+        paginator = commands.Paginator(prefix="", suffix="")
+
+        for line in trace:
+            paginator.add_line(line)
+
+        def embed_exception(text: str, *, index: int = 0) -> disnake.Embed:
+            embed = disnake.Embed(
+                color=disnake.Color(value=15532032),
+                description=f"Command that caused the error: {ctx.message.content} from {ctx.author.name}\nError: {error}'"
+                + "```py\n%s\n```" % text,
+                timestamp=datetime.datetime.utcnow(),
+            )
+
+            if not index:
+                embed.title = "Error"
+
+            return embed
+
+        for page in paginator.pages:
+            await error_channel.send(embed=embed_exception(page))
+
+        return await inter.response.send_message(
+            embed=await failure_embed(
+                "Some error occurred.",
+                "The developer has been informed and should fix it soon.",
+            ),
+            ephemeral=True,
         )
 
     async def on_disconnect(self):
