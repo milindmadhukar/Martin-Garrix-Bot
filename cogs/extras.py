@@ -1,14 +1,19 @@
 import disnake
-import psutil
+from disnake.ext.commands.core import command
 from disnake.ext import commands, tasks
-import random
-import platform
+import typing
 
 from utils.checks import is_admin_check, is_milind_check
-
 from core.MartinBotBase import MartinGarrixBot
 
-from .utils.eightball import get_eightball_embed
+from utils.command_helpers import (
+    get_eightball_embed,
+    get_info_embed,
+    get_messages_embed,
+    get_serverinfo_embed,
+    get_whois_embed,
+)
+from utils.helpers import success_embed
 
 
 class Extras(commands.Cog):
@@ -35,35 +40,39 @@ class Extras(commands.Cog):
             activity=disnake.Activity(type=disnake.ActivityType.listening, name=status)
         )
 
-
     @commands.command(
         help="8 ball command to make decisions",
         aliases=["8ball", "magicball"],
     )
     async def eightball(self, ctx: commands.Context, *, question: str):
         return await ctx.send(embed=get_eightball_embed(question))
-    
+
     @commands.slash_command(
         name="8ball",
         description="8 ball command to make decisions",
     )
-    async def eightball_slash(self, inter: disnake.ApplicationCommandInteraction, question: str):
+    async def eightball_slash(
+        self,
+        inter: disnake.ApplicationCommandInteraction,
+        question: str = commands.Param(
+            description="Enter your question to ask the magic 8 ball."
+        ),
+    ):
         return await inter.response.send_message(embed=get_eightball_embed(question))
-
 
     @commands.command(
         help="Check the latency of the bot from the server.", aliases=["latency"]
     )
     async def ping(self, ctx: commands.Context):
         await ctx.send(f"**Pong! {round(self.bot.latency * 1000)}ms** \U0001F3D3")
-    
+
     @commands.slash_command(
-        name="ping",
-        description="Check the latency of the bot from the server."
+        name="ping", description="Check the latency of the bot from the server."
     )
     async def ping_slash(self, inter: disnake.ApplicationCommandInteraction):
-        await inter.response.send_message(f"**Pong! {round(self.bot.latency * 1000)}ms** \U0001F3D3")
-        
+        await inter.response.send_message(
+            f"**Pong! {round(self.bot.latency * 1000)}ms** \U0001F3D3"
+        )
 
     @commands.command(
         help="Get the avatar of a member.",
@@ -75,59 +84,69 @@ class Extras(commands.Cog):
         embed.set_image(url=member.display_avatar.with_size(512).url)
         await ctx.send(embed=embed)
 
+    @commands.slash_command(name="avatar", description="Get the avatar of a member.")
+    async def avatar_slash(
+        self,
+        inter: disnake.ApplicationCommandInteraction,
+        member: typing.Optional[disnake.Member] = commands.Param(
+            None, description="Enter the member whose avatar you wanna see."
+        ),
+    ):
+        member = member or inter.author
+        embed = disnake.Embed(title=str(member), color=member.color)
+        embed.set_image(url=member.display_avatar.with_size(512).url)
+        return await inter.response.send_message(embed=embed)
+
     @commands.command(help="Get the total number of messages sent by a member.")
     async def messages(self, ctx: commands.Context, member: disnake.Member = None):
         member = member or ctx.author
         query = "SELECT messages_sent FROM users WHERE id = $1"
         msg_count = await self.bot.database.fetchrow(query, member.id)
-        embed = disnake.Embed(color=disnake.Color.orange())
-        embed.set_author(name=member.display_name, icon_url=member.display_avatar.url)
-        embed.add_field(name="Count", value=msg_count["messages_sent"])
-        embed.set_footer(text=f"User ID: {member.id}")
-        await ctx.send(embed=embed)
+        messages = msg_count["messages_sent"]
+
+        await ctx.send(embed=get_messages_embed(member, messages))
+
+    @commands.slash_command(
+        name="messages",
+        description="Get the total number of messages sent by a member.",
+    )
+    async def messages_slash(
+        self,
+        inter: disnake.ApplicationCommandInteraction,
+        member: typing.Optional[disnake.Member] = commands.Param(
+            None, description="Enter the member whose message count you want to see,"
+        ),
+    ):
+        member = member or inter.author
+        query = "SELECT messages_sent FROM users WHERE id = $1"
+        msg_count = await self.bot.database.fetchrow(query, member.id)
+        messages = msg_count["messages_sent"]
+
+        await inter.response.send_message(embed=get_messages_embed(member, messages))
 
     @commands.command(
         help="Get the info about a member or bot in the server.", aliases=["memberinfo"]
     )
     async def whois(self, ctx: commands.Context, member: disnake.Member = None):
         member = member or ctx.author
-
-        perm_list = [perm[0] for perm in member.guild_permissions if perm[1]]
-        perms_list = [perm.replace("_", " ").title() for perm in perm_list]
-        perms = ", ".join(perms_list)
-
         user = await self.bot.database.get_user(member.id) if not member.bot else None
-        embed = disnake.Embed(description=f"{member.mention}", color=member.color)
-        embed.set_author(name=str(member), icon_url=member.display_avatar.url)
-        if user is not None:
-            embed.add_field(name="Messages sent", value=user.messages_sent)
-            embed.add_field(name="Status", value=f"{str(member.status).upper()}")
-            embed.add_field(name="Nickname", value=member.nick, inline=True)
+        return await ctx.send(embed=get_whois_embed(member, user))
 
-        embed.add_field(
-            name="Joined",
-            value=member.joined_at.strftime("%b %d %Y, %H:%M:%S"),
-            inline=False,
-        )
-        embed.add_field(
-            name="Registered",
-            value=member.created_at.strftime("%b %d %Y, %H:%M:%S"),
-            inline=False,
-        )
-        roles = member.roles[:0:-1]
-        embed.add_field(
-            name=f"Roles [{len(roles)}]",
-            value=" ".join([role.mention for role in roles]) or "None",
-            inline=False,
-        )
+    @commands.slash_command(
+        name="whois", description="Get the info about a member or bot in the server."
+    )
+    async def whois_slash(
+        self,
+        inter: disnake.ApplicationCommandInteraction,
+        member: typing.Optional[disnake.Member] = commands.Param(
+            None, description="Enter the member whose info you need."
+        ),
+    ):
+        member = member or inter.author
+        user = await self.bot.database.get_user(member.id) if not member.bot else None
 
-        embed.add_field(name=f"Permissions", value=f"{perms}", inline=False)
+        return await inter.send(embed=get_whois_embed(member, user))
 
-        embed.set_thumbnail(url=member.display_avatar.with_size(256).url)
-        embed.set_footer(text=f"ID: {member.id}")
-        return await ctx.send(embed=embed)
-
-    @is_milind_check()
     @commands.check_any(is_admin_check(), is_milind_check())
     @commands.command(help="Command to create an embed in the chat.", aliases=["em"])
     async def embed(
@@ -137,7 +156,32 @@ class Extras(commands.Cog):
         embed = disnake.Embed(title=title, colour=disnake.Colour.blurple())
         if description is not None:
             embed.description = description
-        return await ctx.send(embed=embed)
+        await ctx.send(embed=embed)
+
+        return await ctx.send(embed=await success_embed("Successfully sent the message."))
+
+    @commands.check_any(is_admin_check(), is_milind_check())
+    @commands.slash_command(
+        name="embed", description="Command to create an embed in the chat."
+    )
+    async def embed_slash(
+        self,
+        inter: disnake.ApplicationCommandInteraction,
+        channel: typing.Optional[disnake.TextChannel] = commands.Param(
+            None, description="Enter the channel to send the embed in."
+        ),
+        title: str = commands.Param(description="Enter the title of the embed."),
+        description: typing.Optional[str] = commands.Param(
+            None, description="Enter the description of the embed."
+        ),
+    ):
+        embed = disnake.Embed(title=title, colour=disnake.Colour.blurple())
+        if description is not None:
+            embed.description = description
+        channel = channel or inter.channel
+        await channel.send(embed=embed)
+
+        return await inter.response.send_message(embed=await success_embed("Successfully sent the message."), ephemeral=True)
 
     @commands.check_any(is_admin_check(), is_milind_check())
     @commands.command(help="Send a message in a channel.", aliases=["send"])
@@ -146,72 +190,47 @@ class Extras(commands.Cog):
             await ctx.send("Please provide a message.")
         message = await commands.clean_content().convert(ctx=ctx, argument=message)
         await channel.send(message)
-        # TODO: Some sort of response?
+        return await ctx.send(embed=await success_embed("Successfully sent the message."), delete_after=10)
+
+    @commands.check_any(is_admin_check(), is_milind_check())
+    @commands.slash_command(name="say", description="Send a message in a channel.")
+    async def say_slash(
+        self,
+        inter: disnake.ApplicationCommandInteraction,
+        channel: typing.Optional[disnake.TextChannel] = commands.Param(
+            None, description="Enter the channel you want to send the message in."
+        ),
+        message: str = commands.Param(
+            description="Enter your message to send in the channel"
+        ),
+    ):
+        # message = await commands.clean_content().convert(ctx=inter, argument=message)
+        channel = channel or inter.channel
+        await channel.send(message)
+
+        return await inter.response.send_message(embed=await success_embed("Successfully sent the message."), ephemeral=True)
 
     @commands.command(help="Gives you the info of the current server.")
     async def serverinfo(self, ctx: commands.Context):
-        guild: disnake.Guild = ctx.guild
-        embed = disnake.Embed(title=guild.name, colour=disnake.Colour.blue())
-        embed.add_field(name="Owner", value=guild.owner.mention)
-        embed.add_field(
-            name="Created At", value=guild.created_at.strftime("%b %d %Y, %H:%M:%S")
-        )
-        embed.add_field(name="Members", value=str(guild.member_count))
-        embed.add_field(name="Categories", value=str(len(guild.categories)))
-        embed.add_field(name="Text Channels", value=str(len(guild.text_channels)))
-        embed.add_field(name="Voice Channels", value=str(len(guild.voice_channels)))
-        embed.add_field(name="Roles", value=str(len(guild.roles)))
-        embed.add_field(name="Boosters", value=str(guild.premium_subscription_count))
-        embed.add_field(
-            name="File Size Limit",
-            value=str(guild.filesize_limit // (1024 * 1024)) + "mb",
-        )
-        embed.set_footer(text=f"Guild ID : {guild.id}")
-        if guild.icon is not None:
-            embed.set_thumbnail(url=guild.icon.url)
-        return await ctx.send(embed=embed)
+        guild: disnake.Guild = self.bot.guild
+        return await ctx.send(embed=get_serverinfo_embed(guild))
+
+    @commands.slash_command(name="serverinfo", description="Gives you the info of the current server.")
+    async def serverinfo_slash(self, inter: disnake.ApplicationCommandInteraction):
+        guild: disnake.Guild = self.bot.guild
+        return await inter.response.send_message(embed=get_serverinfo_embed(guild))
 
     @commands.command(help="Gives you the info about the bot and its creator.")
     async def info(self, ctx: commands.Context):
         bot = self.bot
-        platform_details = platform.platform()
-        users = await self.bot.database.fetchrow("""SELECT COUNT(*) FROM users""")
-        users = users["count"]
-        milind = ctx.guild.get_member(421608483629301772)
-        korta = ctx.guild.get_member(736820906604888096)
-        if milind is None:
-            milind = "Milind Madhukar"
-        else:
-            milind = milind.mention
-        if korta is None:
-            korta = "Korta Po"
-        else:
-            korta = korta.mention
-        cpu_usage = f"{psutil.cpu_percent()}%"
-        ram_usage = f"{psutil.virtual_memory().percent}%"
-        embed = disnake.Embed(
-            title=f"{bot.user.name}!",
-            description="A multipurpose bot created exclusively for Garrixers.",
-            colour=disnake.Colour.blurple(),
-        )
-        embed.add_field(name="Creator", value=f"{milind}", inline=False)
-        embed.add_field(name="Contributor", value=f"{korta}", inline=False)
-        embed.add_field(name="Total Users", value=users, inline=False)
-        embed.add_field(
-            name="Created At", value=bot.user.created_at.strftime("%b %d %Y, %H:%M:%S")
-        )
-        embed.add_field(
-            name="Bot Server Info",
-            value=f"**Platform:** {platform_details}\n\n**CPU Usage:** {cpu_usage}\n**Ram Usage:** {ram_usage}",
-            inline=False,
-        )
-        embed.set_footer(
-            text="Please note that this bot is completely fan made.\nIt "
-            "does not affiliate with Martin Garrix or STMPD RCRDS in any way."
-        )
-        embed.set_image(url=bot.user.display_avatar.url)
-
+        embed = await get_info_embed(bot)
         return await ctx.send(embed=embed)
+
+    @commands.slash_command(name="info", description="Gives you the info about the bot and its creator.")
+    async def info_slash(self, inter: disnake.ApplicationCommandInteraction):
+        bot = self.bot
+        embed = await get_info_embed(bot)
+        return await inter.response.send_message(embed=embed)
 
 def setup(bot):
     bot.add_cog(Extras(bot))

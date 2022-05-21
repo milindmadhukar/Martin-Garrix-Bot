@@ -1,5 +1,9 @@
+import typing
 import disnake
 from disnake.ext import commands
+from disnake.ext.commands.params import Param
+from disnake.interactions.application_command import ApplicationCommandInteraction
+from disnake.member import Member
 
 from tabulate import tabulate
 
@@ -17,7 +21,7 @@ class Levelling(commands.Cog):
         self.bot = bot
 
     @commands.command(
-        help="Check your current level and rank throughout all server the bot is in.",
+        help="Check the current level and rank of a member in the server",
         aliases=["level", "lvl"],
     )
     async def rank(self, ctx: commands.Context, member: disnake.Member = None):
@@ -48,6 +52,47 @@ class Levelling(commands.Cog):
             image.seek(0)
         else:
             await ctx.send(embed=await failure_embed("Requested member was not found."))
+
+    @commands.slash_command(
+        name="rank",
+        description="Check the current level and rank of a member in the server.",
+    )
+    async def rank_slash(
+        self,
+        inter: disnake.ApplicationCommandInteraction,
+        member: typing.Optional[disnake.Member] = commands.Param(
+            None, description="Enter the member whose rank you want to check."
+        ),
+    ):
+        member = member or inter.author
+        if member.bot:
+            return await inter.response.send_message(
+                embed=await failure_embed(title="You can't check the rank of a bot."),
+                ephemeral=True,
+            )
+        user = await self.bot.database.get_user(member.id)
+        if user is not None:
+            await inter.response.defer()
+            pfp = member.display_avatar.with_size(256).with_static_format("png")
+            img_data = BytesIO(await pfp.read())
+            loop = asyncio.get_event_loop()
+            query_guild = f"""
+                        WITH ordered_users AS (
+                          SELECT
+                            id,
+                            ROW_NUMBER() OVER (ORDER BY total_xp DESC) rank
+                          FROM users)
+                          SELECT rank FROM ordered_users WHERE ordered_users.id = $1;
+                        """
+            record = await self.bot.database.fetchrow(query_guild, member.id)
+            rank = record["rank"]
+            image = await loop.run_in_executor(
+                None, rank_picture, user, str(member), rank, img_data
+            )
+            await inter.edit_original_message(file=disnake.File(filename="rank.png", fp=image))
+            image.seek(0)
+        else:
+            await inter.edit_original_message(embed=await failure_embed("Requested member was not found."))
 
     @commands.command(aliases=["lb", "rankings"])
     async def leaderboard(self, ctx: commands.Context, *, lb_type: str = None):

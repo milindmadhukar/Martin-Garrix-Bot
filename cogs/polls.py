@@ -7,6 +7,8 @@ import datetime
 
 from core.MartinBotBase import MartinGarrixBot
 
+# TODO: Poll slash
+
 
 class Polls(commands.Cog):
     def __init__(self, bot: MartinGarrixBot):
