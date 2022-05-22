@@ -1,6 +1,6 @@
 import disnake
 import random
-
+from .database.user import User
 import psutil
 import platform
 
@@ -31,8 +31,6 @@ __all = (
     "get_lyrics_embed",
     "get_error_message",
 )
-
-from .database.user import User
 
 
 def get_error_message(error) -> str:
