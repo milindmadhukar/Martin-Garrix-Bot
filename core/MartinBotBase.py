@@ -35,6 +35,7 @@ class MartinGarrixBot(commands.Bot):
             case_insensitive=True,
             sync_commands_debug=True,
             help_command=HelpCommand(),
+            # test_guilds = [810462585433882674],
             enable_debug_events=True,
             reload=True,  # This Kwarg Enables Cog watchdog, Hot reloading of cogs.
             *args,
@@ -260,7 +261,7 @@ class MartinGarrixBot(commands.Bot):
         def embed_exception(text: str, *, index: int = 0) -> disnake.Embed:
             embed = disnake.Embed(
                 color=disnake.Color(value=15532032),
-                description=f"Command that caused the error: {ctx.message.content} from {ctx.author.name}\nError: {error}'"
+                description=f"Error: {error}'"
                 + "```py\n%s\n```" % text,
                 timestamp=datetime.datetime.utcnow(),
             )

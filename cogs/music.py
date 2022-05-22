@@ -59,15 +59,15 @@ class Music(commands.Cog):
             )
         )
 
-    @commands.slash_command(name="startradio", description="Start the 24/7 Garrix Radio.")
+    @commands.command()
     @is_milind_check()
-    async def startradio(self, inter: disnake.ApplicationCommandInteraction):
+    async def startradio(self, ctx: commands.Context):
         """Play a song with the given search query.
 
         If not connected, connect to our voice channel.
         """
         if not ctx.voice_client:
-            self.vc: wavelink.Player = await inter.author.voice.channel.connect(
+            self.vc: wavelink.Player = await ctx.author.voice.channel.connect(
                 cls=wavelink.Player
             )
         else:
@@ -88,7 +88,7 @@ class Music(commands.Cog):
             )
         )
 
-        await inter.response.send_message(embed=await success_embed("Started the radio."))
+        await ctx.send(embed=await success_embed("Started the radio."))
 
 def setup(bot):
     bot.add_cog(Music(bot))
