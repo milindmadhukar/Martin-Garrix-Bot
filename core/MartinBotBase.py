@@ -112,6 +112,12 @@ class MartinGarrixBot(commands.Bot):
             else None
         )
 
+        self.radio_channel = (
+            self.get_channel(self.bot_config.RADIO_CHANNEL.value)
+            if self.bot_config.RADIO_CHANNEL is not None
+            else None
+        )
+
         self.staff_role = self.guild.get_role(self.bot_config.STAFF_ROLE.value)
         self.moderator_role = self.guild.get_role(self.bot_config.MODERATOR_ROLE.value)
         self.admin_role = self.guild.get_role(self.bot_config.ADMIN_ROLE.value)

@@ -21,7 +21,8 @@ class Extras(commands.Cog):
         self.bot = bot
 
     async def cog_load(self) -> None:
-        self.change_status.start()
+        pass
+        # self.change_status.start()
 
     @tasks.loop(minutes=2)
     async def change_status(self):
