@@ -15,6 +15,10 @@ from io import BytesIO
 
 from utils.helpers import get_user_level_data, humanize
 
+Leaderboard_categories = commands.option_enum(
+    ["levels", "coins", "messages", "in hand"]
+)
+
 
 class Levelling(commands.Cog):
     def __init__(self, bot: MartinGarrixBot):
@@ -89,20 +93,21 @@ class Levelling(commands.Cog):
             image = await loop.run_in_executor(
                 None, rank_picture, user, str(member), rank, img_data
             )
-            await inter.edit_original_message(file=disnake.File(filename="rank.png", fp=image))
+            await inter.edit_original_message(
+                file=disnake.File(filename="rank.png", fp=image)
+            )
             image.seek(0)
         else:
-            await inter.edit_original_message(embed=await failure_embed("Requested member was not found."))
+            await inter.edit_original_message(
+                embed=await failure_embed("Requested member was not found.")
+            )
 
-    @commands.command(aliases=["lb", "rankings"])
+    @commands.command(
+        help="Check the leaderboard of various categories", aliases=["lb", "rankings"]
+    )
     async def leaderboard(self, ctx: commands.Context, *, lb_type: str = None):
         query = "SELECT id, messages_sent, in_hand, garrix_coins, total_xp FROM users "
-        help_categories = """Available Categories:
-        `xp`, `total xp`, `experience`, `levels`, `level`, `lvl` - **Ordered on your level in the server.**
-        `coins`, `coin`, `currency`, `garrix coins` - **Ordered by the amount of coins you have.**
-        `msgs`, `msg`, `total messages`, `all messages` - **Ordered by the number of messages you have sent.**
-        `hand`, `in hand` - **Ordered by the amount of Garrix coins in hand. Useful for robbing.**
-        """
+
         if lb_type in ["coins", "coin", "currency", "garrix coins"]:
             query += "ORDER BY garrix_coins DESC LIMIT 10"
             records = await self.bot.database.fetch(query)
@@ -112,7 +117,7 @@ class Levelling(commands.Cog):
                 member = ctx.guild.get_member(record["id"])
                 if member is None:
                     continue
-                lb.append([member, (record["garrix_coins"] + record["in_hand"])])
+                lb.append([member, record["garrix_coins"]])
 
         elif lb_type in [
             "xp",
@@ -165,6 +170,66 @@ class Levelling(commands.Cog):
             )
 
         return await ctx.send(
+            f'>>> ```prolog\n{tabulate(lb, headers=("User", lb_name,), tablefmt="fancy_grid")}\n```'
+        )
+
+    @commands.slash_command(
+        name="leaderboard", description="Check the leaderboard of various categories"
+    )
+    async def leaderboard_slash(
+        self,
+        inter: disnake.ApplicationCommandInteraction,
+        category: Leaderboard_categories,
+    ):
+        query = "SELECT id, messages_sent, in_hand, garrix_coins, total_xp FROM users "
+        bot = self.bot
+        lb_name = ""
+        lb = []
+        if category == "coins":
+            query += "ORDER BY garrix_coins DESC LIMIT 10"
+            records = await self.bot.database.fetch(query)
+            lb_name = "Coins"
+            lb = []
+            for record in records:
+                member = bot.guild.get_member(record["id"])
+                if member is None:
+                    continue
+                lb.append([member, record["garrix_coins"]])
+
+        elif category == "levels":
+            query += "ORDER BY total_xp DESC LIMIT 10"
+            records = await self.bot.database.fetch(query)
+            lb_name = "Levels"
+            lb = []
+            for record in records:
+                member = bot.guild.get_member(record["id"])
+                if member is None:
+                    continue
+                lb.append([member, get_user_level_data(record["total_xp"])["lvl"]])
+
+        elif category == "messages":
+            query += "ORDER BY messages_sent DESC LIMIT 10"
+            records = await self.bot.database.fetch(query)
+            lb_name = "Messages"
+            lb = []
+            for record in records:
+                member = bot.guild.get_member(record["id"])
+                if member is None:
+                    continue
+                lb.append([member, humanize(record["messages_sent"])])
+
+        elif category == "in hand":
+            query += "ORDER BY in_hand DESC LIMIT 10"
+            records = await self.bot.database.fetch(query)
+            lb_name = "Coins in hand"
+            lb = []
+            for record in records:
+                member = bot.guild.get_member(record["id"])
+                if member is None:
+                    continue
+                lb.append([member, record["in_hand"]])
+
+        return await inter.response.send_message(
             f'>>> ```prolog\n{tabulate(lb, headers=("User", lb_name,), tablefmt="fancy_grid")}\n```'
         )
 
