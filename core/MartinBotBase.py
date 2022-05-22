@@ -37,6 +37,7 @@ class MartinGarrixBot(commands.Bot):
             help_command=HelpCommand(),
             # test_guilds = [810462585433882674],
             enable_debug_events=True,
+            test_guilds=[749506864794042392],
             reload=True,  # This Kwarg Enables Cog watchdog, Hot reloading of cogs.
             *args,
             **kwargs,
@@ -50,7 +51,6 @@ class MartinGarrixBot(commands.Bot):
     def load_cogs(self, exts: typing.Iterable[str]) -> None:
         """
         This method loads all the cogs to the bot from the specified folder.
-
         Parameters:
             exts (Iterable[list]): A list of extensions to load.
         """
@@ -122,7 +122,7 @@ class MartinGarrixBot(commands.Bot):
         self.staff_role = self.guild.get_role(self.bot_config.STAFF_ROLE.value)
         self.moderator_role = self.guild.get_role(self.bot_config.MODERATOR_ROLE.value)
         self.admin_role = self.guild.get_role(self.bot_config.ADMIN_ROLE.value)
-        self.garrixer_role = self.guild.get_role(self.bot_config.GARRXIER_ROLE.value)
+        self.garrixer_role = self.guild.get_role(self.bot_config.GARRIXER_ROLE.value)
         self.true_garrixer_role = self.guild.get_role(
             self.bot_config.TRUE_GARRIXER_ROLE.value
         )
@@ -173,7 +173,7 @@ class MartinGarrixBot(commands.Bot):
             await self.delete_logs_channel.send(embed=embed)
 
     async def on_message_edit(
-        self, message_before: disnake.Message, message_after: disnake.Message
+            self, message_before: disnake.Message, message_after: disnake.Message
     ):
         if message_before.embeds or message_after.embeds:
             return
@@ -205,13 +205,13 @@ class MartinGarrixBot(commands.Bot):
         return await message.delete(delay=20.0)
 
     async def on_slash_command_error(
-        self, inter: disnake.ApplicationCommandInteraction, error
+            self, interaction: disnake.ApplicationCommandInteraction, error: Exception
     ) -> None:
         msg = get_error_message(error)
         if msg is None:
-            return await self.handle_slash_error(inter, error)
+            return await self.handle_slash_error(interaction, error)
 
-        return await inter.response.send_message(
+        return await interaction.send(
             embed=await failure_embed(msg), ephemeral=True
         )
 
@@ -228,7 +228,7 @@ class MartinGarrixBot(commands.Bot):
             embed = disnake.Embed(
                 color=disnake.Color(value=15532032),
                 description=f"Command that caused the error: {ctx.message.content} from {ctx.author.name}\nError: {error}'"
-                + "```py\n%s\n```" % text,
+                            + "```py\n%s\n```" % text,
                 timestamp=datetime.datetime.utcnow(),
             )
 
@@ -248,11 +248,11 @@ class MartinGarrixBot(commands.Bot):
         )
 
     async def handle_slash_error(
-        self, inter: disnake.ApplicationCommandInteraction, error
+            self, interaction: disnake.ApplicationCommandInteraction, error
     ):
-        print(error)
         error_channel = self.get_channel(int(os.environ.get("ERROR_CHANNEL")))
         trace = traceback.format_exception(type(error), error, error.__traceback__)
+        print(trace)
         paginator = commands.Paginator(prefix="", suffix="")
 
         for line in trace:
@@ -274,7 +274,7 @@ class MartinGarrixBot(commands.Bot):
         for page in paginator.pages:
             await error_channel.send(embed=embed_exception(page))
 
-        return await inter.response.send_message(
+        return await interaction.send(
             embed=await failure_embed(
                 "Some error occurred.",
                 "The developer has been informed and should fix it soon.",
@@ -297,7 +297,7 @@ class MartinGarrixBot(commands.Bot):
         This method creates a postgres database connection and executes sql code in it.
         """
         self.database = await Database.create_pool(
-            bot=self, uri=os.environ.get("POSTGRES_URI")
+            bot=self, uri=os.environ.get("POSTGRES_URI"), max_connections=1, min_connections=1
         )
 
         with open("./static/database.sql", mode="r") as r:
