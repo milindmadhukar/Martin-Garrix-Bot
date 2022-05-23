@@ -35,6 +35,7 @@ __all = (
 
 def get_error_message(error) -> str:
     msg = None
+
     if isinstance(error, BotMissingPermissions):
         msg = f"The bot is missing these permissions to do this command:\n{error.missing_permissions}"
 

@@ -42,4 +42,5 @@ typing-extensions==4.2.0
 update-checker==0.18.0
 uritemplate==4.1.1
 urllib3==1.26.9
+wavelink @ git+https://github.com/CanasDev/Disnake-Wavelink@99570125ac9a4f1ba715de7bff432dc36095add5
 yarl==1.7.2

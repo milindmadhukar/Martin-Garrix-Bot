@@ -11,6 +11,8 @@ from core.MartinBotBase import MartinGarrixBot
 from utils.command_helpers import get_lyrics_embed
 from utils.helpers import failure_embed, success_embed, parse_amount
 
+Quiz_difficulties = commands.option_enum(choices=["easy", "medium", "hard", "extreme"])
+
 
 class Fun(commands.Cog):
     def __init__(self, bot: MartinGarrixBot):
@@ -35,9 +37,9 @@ class Fun(commands.Cog):
         description="Get the lyrics of any Martin Garrix, Area 21, GRX or YTRAM song.",
     )
     async def lyrics_slash(
-            self,
-            interaction: disnake.ApplicationCommandInteraction,
-            song_name: str = commands.Param(description="Enter the name of the song."),
+        self,
+        interaction: disnake.ApplicationCommandInteraction,
+        song_name: str = commands.Param(description="Enter the name of the song."),
     ):
 
         query = "SELECT * FROM songs WHERE name LIKE $1"
@@ -54,7 +56,7 @@ class Fun(commands.Cog):
     @commands.command()
     @commands.cooldown(1, 10 * 60, commands.BucketType.user)
     async def quiz(
-            self, ctx: commands.Context, difficulty: lambda inp: inp.lower() = None
+        self, ctx: commands.Context, difficulty: lambda inp: inp.lower() = None
     ):
         if difficulty is None or difficulty not in [
             "easy",
@@ -65,8 +67,8 @@ class Fun(commands.Cog):
             embed = disnake.Embed(
                 title="Please choose an appropriate difficulty level.",
                 description="Your choices are:\n**easy** : "
-                            "50 garrix coins\n**medium** : 100 garrix coins\n**hard** : "
-                            "150 garrix coins\n**extreme** : 200 garrix coins",
+                "50 garrix coins\n**medium** : 100 garrix coins\n**hard** : "
+                "150 garrix coins\n**extreme** : 200 garrix coins",
                 color=disnake.Colour.teal(),
             )
             ctx.command.reset_cooldown(ctx)
@@ -86,7 +88,7 @@ class Fun(commands.Cog):
         while lyrics == "":
             tries += 1
             lyrics = "\n".join(
-                lines[line_number: line_number + difficulty_lines.get(difficulty, 3)]
+                lines[line_number : line_number + difficulty_lines.get(difficulty, 3)]
             )
             if tries > 10:
                 break
@@ -109,7 +111,7 @@ class Fun(commands.Cog):
             guess = await self.bot.wait_for(
                 "message",
                 check=lambda m: m.author.id == ctx.author.id
-                                and m.channel.id == ctx.channel.id,
+                and m.channel.id == ctx.channel.id,
                 timeout=30,
             )
             similarity = SequenceMatcher(
@@ -152,35 +154,23 @@ class Fun(commands.Cog):
             embed = disnake.Embed(
                 title="You are currently on cooldown.",
                 description=f" This game can only be played once in 10 minutes."
-                            f"\nTry again in {int(error.retry_after)} seconds",
+                f"\nTry again in {int(error.retry_after)} seconds",
                 color=disnake.Colour.red(),
             )
             return await ctx.send(embed=embed)
         else:
             print(traceback.format_exception(type(error), error, error.__traceback__))
 
-    @commands.slash_command(name="quiz", description="Solve a Martin Garrix Quiz question.")
+    # @commands.slash_command(
+    #     name="quiz", description="Solve a Martin Garrix Quiz question."
+    # )
     @commands.cooldown(1, 10 * 60, commands.BucketType.user)
     async def quiz_slash(
-            self, interaction: disnake.ApplicationCommandInteraction,
-            difficulty: str = commands.Param(description="Choose your difficulty")
+        self,
+        interaction: disnake.ApplicationCommandInteraction,
+        difficulty: Quiz_difficulties,
     ):
         await interaction.response.defer()
-        if difficulty is None or difficulty not in [
-            "easy",
-            "medium",
-            "hard",
-            "extreme",
-        ]:
-            embed = disnake.Embed(
-                title="Please choose an appropriate difficulty level.",
-                description="Your choices are:\n**easy** : "
-                            "50 garrix coins\n**medium** : 100 garrix coins\n**hard** : "
-                            "150 garrix coins\n**extreme** : 200 garrix coins",
-                color=disnake.Colour.teal(),
-            )
-            interaction.application_command.reset_cooldown(interaction)
-            return await interaction.send(embed=embed)
 
         query = "SELECT * FROM songs WHERE lyrics IS NOT NULL ORDER BY RANDOM() LIMIT 1"
         if difficulty == "easy":
@@ -196,13 +186,16 @@ class Fun(commands.Cog):
         while lyrics == "":
             tries += 1
             lyrics = "\n".join(
-                lines[line_number: line_number + difficulty_lines.get(difficulty, 3)]
+                lines[line_number : line_number + difficulty_lines.get(difficulty, 3)]
             )
             if tries > 10:
                 break
         if not lyrics:
             interaction.application_command.reset_cooldown(interaction)
-            return await interaction.send_message("Some error occurred, please try again.")
+            return await interaction.response.send_message(
+                embed=await failure_embed("Some error occurred, please try again."),
+                ephemeral=True,
+            )
 
         embed = disnake.Embed(
             title=f"Guess the song title from the lyrics! ({difficulty.title()})",
@@ -218,7 +211,8 @@ class Fun(commands.Cog):
         try:
             guess = await self.bot.wait_for(
                 "message",
-                check=lambda m: m.author.id == interaction.author.id and m.channel.id == interaction.channel.id,
+                check=lambda m: m.author.id == interaction.author.id
+                and m.channel.id == interaction.channel.id,
                 timeout=30,
             )
             similarity = SequenceMatcher(
@@ -255,16 +249,18 @@ class Fun(commands.Cog):
 
         await interaction.send(embed=embed)
 
-    @quiz.error
-    async def quiz_error(self, ctx: disnake.ApplicationCommandInteraction, error: Exception):
+    @quiz_slash.error
+    async def quiz_error(
+        self, interaction: disnake.ApplicationCommandInteraction, error: Exception
+    ):
         if isinstance(error, commands.CommandOnCooldown):
             embed = disnake.Embed(
                 title="You are currently on cooldown.",
                 description=f" This game can only be played once in 10 minutes."
-                            f"\nTry again in {int(error.retry_after)} seconds",
+                f"\nTry again in {int(error.retry_after)} seconds",
                 color=disnake.Colour.red(),
             )
-            return await ctx.send(embed=embed)
+            return await interaction.send(embed=embed, ephemeral=True)
         else:
             print(traceback.format_exception(type(error), error, error.__traceback__))
 
@@ -279,9 +275,9 @@ class Fun(commands.Cog):
         garrix_coins = record["garrix_coins"]
         embed = (
             disnake.Embed(title="Garrix Bank", colour=disnake.Colour.orange())
-                .add_field(name="In hand", value=in_hand)
-                .add_field(name="In Safe", value=garrix_coins)
-                .set_thumbnail(url=member.avatar.with_size(256))
+            .add_field(name="In hand", value=in_hand)
+            .add_field(name="In Safe", value=garrix_coins)
+            .set_thumbnail(url=member.avatar.with_size(256))
         )
 
         return await ctx.send(embed=embed)
@@ -290,11 +286,11 @@ class Fun(commands.Cog):
         name="balance", description="Check you account balance for Garrix coins"
     )
     async def balance_slash(
-            self,
-            interaction: disnake.ApplicationCommandInteraction,
-            member: typing.Optional[disnake.Member] = commands.Param(
-                None, description="Enter the member whose balance you want to check."
-            ),
+        self,
+        interaction: disnake.ApplicationCommandInteraction,
+        member: typing.Optional[disnake.Member] = commands.Param(
+            None, description="Enter the member whose balance you want to check."
+        ),
     ):
         member = member or interaction.author
         query = "SELECT in_hand, garrix_coins FROM users WHERE id = $1"
@@ -303,9 +299,9 @@ class Fun(commands.Cog):
         garrix_coins = record["garrix_coins"]
         embed = (
             disnake.Embed(title="Garrix Bank", colour=disnake.Colour.orange())
-                .add_field(name="In hand", value=in_hand)
-                .add_field(name="In Safe", value=garrix_coins)
-                .set_thumbnail(url=member.avatar.with_size(256))
+            .add_field(name="In hand", value=in_hand)
+            .add_field(name="In Safe", value=garrix_coins)
+            .set_thumbnail(url=member.avatar.with_size(256))
         )
 
         return await interaction.send(embed=embed)
@@ -338,9 +334,9 @@ class Fun(commands.Cog):
         name="withdraw", description="Withdraw Garrix coins from safe to hold in hand."
     )
     async def withdraw_slash(
-            self,
-            interaction: disnake.ApplicationCommandInteraction,
-            amount: str = commands.Param(description="Enter the amount to withdraw."),
+        self,
+        interaction: disnake.ApplicationCommandInteraction,
+        amount: str = commands.Param(description="Enter the amount to withdraw."),
     ):
         query = "SELECT garrix_coins FROM users WHERE id = $1"
         record = await self.bot.database.fetchrow(query, interaction.author.id)
@@ -396,9 +392,9 @@ class Fun(commands.Cog):
         name="deposit", description="Deposit Garrix coins from hand to safe."
     )
     async def deposit_slash(
-            self,
-            interaction: disnake.ApplicationCommandInteraction,
-            amount: str = commands.Param(description="Enter the amount to deposit."),
+        self,
+        interaction: disnake.ApplicationCommandInteraction,
+        amount: str = commands.Param(description="Enter the amount to deposit."),
     ):
         query = "SELECT in_hand FROM users WHERE id = $1"
         record = await self.bot.database.fetchrow(query, interaction.author.id)
@@ -456,12 +452,12 @@ class Fun(commands.Cog):
 
     @commands.slash_command(name="give", description="Give Garrix coins to a member.")
     async def give_slash(
-            self,
-            interaction: disnake.ApplicationCommandInteraction,
-            member: disnake.Member = commands.Param(
-                description="Enter the member whom you want to give coins."
-            ),
-            amount: str = commands.Param(description="Enter the amount to deposit."),
+        self,
+        interaction: disnake.ApplicationCommandInteraction,
+        member: disnake.Member = commands.Param(
+            description="Enter the member whom you want to give coins."
+        ),
+        amount: str = commands.Param(description="Enter the amount to deposit."),
     ):
         query = "SELECT in_hand FROM users WHERE id = $1"
         record = await self.bot.database.fetchrow(query, interaction.author.id)
@@ -536,7 +532,7 @@ class Fun(commands.Cog):
             embed = disnake.Embed(
                 title="You are currently on cooldown.",
                 description=f" Woah thief, you can only rob once in 3 hours.\nTry again "
-                            f"in {int(error.retry_after)} seconds",
+                f"in {int(error.retry_after)} seconds",
                 color=disnake.Colour.red(),
             )
             return await ctx.send(embed=embed)
@@ -545,13 +541,13 @@ class Fun(commands.Cog):
             print(traceback.format_exception(type(error), error, error.__traceback__))
 
     @commands.cooldown(1, 3 * 60 * 60, commands.BucketType.user)
-    @commands.slash_command(
-        name="rob", description="Steal Garrix coins from another member."
-    )
+    # @commands.slash_command(
+    #     name="rob", description="Steal Garrix coins from another member."
+    # )
     async def rob_slash(
-            self,
-            interaction: disnake.ApplicationCommandInteraction,
-            member: disnake.Member = commands.Param(description="Enter the member to rob."),
+        self,
+        interaction: disnake.ApplicationCommandInteraction,
+        member: disnake.Member = commands.Param(description="Enter the member to rob."),
     ):
         await interaction.response.defer(message="Robbing in progress....")
         if member.id == interaction.author.id:
@@ -568,7 +564,8 @@ class Fun(commands.Cog):
             return await interaction.send(
                 embed=await failure_embed(
                     "Member needs to have atleast 200 Garrix coins in hand to be robbed."
-                )
+                ),
+                ephemeral=True,
             )
         is_going_to_be_robbed = random.choice([True, False, False, False, False])
         # is_going_to_be_robbed = True
@@ -589,18 +586,23 @@ class Fun(commands.Cog):
             )
 
     @rob_slash.error
-    async def rob_error(self, interaction: disnake.ApplicationCommandInteraction, error: Exception):
+    async def rob_error(
+        self, interaction: disnake.ApplicationCommandInteraction, error: Exception
+    ):
         if isinstance(error, commands.CommandOnCooldown):
             embed = disnake.Embed(
                 title="You are currently on cooldown.",
                 description=f" Woah thief, you can only rob once in 3 hours.\nTry again "
-                            f"in {int(error.retry_after)} seconds",
+                f"in {int(error.retry_after)} seconds",
                 color=disnake.Colour.red(),
             )
-            return await interaction.send(embed=embed)
+            return await interaction.send(embed=embed, ephemeral=True)
         else:
             interaction.application_command.reset_cooldown(interaction)
             print(traceback.format_exception(type(error), error, error.__traceback__))
+
+
+    # TODO: Fix quiz and rob.
 
 
 def setup(bot):

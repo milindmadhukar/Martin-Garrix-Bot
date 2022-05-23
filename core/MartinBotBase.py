@@ -35,9 +35,8 @@ class MartinGarrixBot(commands.Bot):
             case_insensitive=True,
             sync_commands_debug=True,
             help_command=HelpCommand(),
-            # test_guilds = [810462585433882674],
-            enable_debug_events=True,
-            test_guilds=[749506864794042392],
+            # test_guilds=[810462585433882674],
+            # enable_debug_events=True,
             reload=True,  # This Kwarg Enables Cog watchdog, Hot reloading of cogs.
             *args,
             **kwargs,
@@ -173,7 +172,7 @@ class MartinGarrixBot(commands.Bot):
             await self.delete_logs_channel.send(embed=embed)
 
     async def on_message_edit(
-            self, message_before: disnake.Message, message_after: disnake.Message
+        self, message_before: disnake.Message, message_after: disnake.Message
     ):
         if message_before.embeds or message_after.embeds:
             return
@@ -196,6 +195,8 @@ class MartinGarrixBot(commands.Bot):
             await self.edit_logs_channel.send(embed=embed)
 
     async def on_command_error(self, ctx: commands.Context, error):
+        if hasattr(ctx.command, 'on_error'):
+            return
         msg = get_error_message(error)
         if msg is None:
             return await self.handle_error(ctx, error)
@@ -205,15 +206,15 @@ class MartinGarrixBot(commands.Bot):
         return await message.delete(delay=20.0)
 
     async def on_slash_command_error(
-            self, interaction: disnake.ApplicationCommandInteraction, error: Exception
+        self, interaction: disnake.ApplicationCommandInteraction, error: Exception
     ) -> None:
+        if hasattr(interaction.application_command, 'on_error'):
+            return
         msg = get_error_message(error)
         if msg is None:
             return await self.handle_slash_error(interaction, error)
 
-        return await interaction.send(
-            embed=await failure_embed(msg), ephemeral=True
-        )
+        return await interaction.send(embed=await failure_embed(msg), ephemeral=True)
 
     async def handle_error(self, ctx: commands.Context, error) -> disnake.Message:
         print(error)
@@ -228,7 +229,7 @@ class MartinGarrixBot(commands.Bot):
             embed = disnake.Embed(
                 color=disnake.Color(value=15532032),
                 description=f"Command that caused the error: {ctx.message.content} from {ctx.author.name}\nError: {error}'"
-                            + "```py\n%s\n```" % text,
+                + "```py\n%s\n```" % text,
                 timestamp=datetime.datetime.utcnow(),
             )
 
@@ -248,7 +249,7 @@ class MartinGarrixBot(commands.Bot):
         )
 
     async def handle_slash_error(
-            self, interaction: disnake.ApplicationCommandInteraction, error
+        self, interaction: disnake.ApplicationCommandInteraction, error
     ):
         error_channel = self.get_channel(int(os.environ.get("ERROR_CHANNEL")))
         trace = traceback.format_exception(type(error), error, error.__traceback__)
@@ -261,8 +262,8 @@ class MartinGarrixBot(commands.Bot):
         def embed_exception(text: str, *, index: int = 0) -> disnake.Embed:
             embed = disnake.Embed(
                 color=disnake.Color(value=15532032),
-                description=f"Error: {error}'"
-                + "```py\n%s\n```" % text,
+                description=f"Command that caused the error: {interaction.application_command.name} from "
+                f"{interaction.author.name}\nError: {error}'" + "```py\n%s\n```" % text,
                 timestamp=datetime.datetime.utcnow(),
             )
 
@@ -297,7 +298,8 @@ class MartinGarrixBot(commands.Bot):
         This method creates a postgres database connection and executes sql code in it.
         """
         self.database = await Database.create_pool(
-            bot=self, uri=os.environ.get("POSTGRES_URI"), max_connections=1, min_connections=1
+            bot=self,
+            uri=os.environ.get("POSTGRES_URI"),
         )
 
         with open("./static/database.sql", mode="r") as r:
