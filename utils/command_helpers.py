@@ -1,6 +1,6 @@
 import disnake
 import random
-
+from .database.user import User
 import psutil
 import platform
 
@@ -32,11 +32,10 @@ __all = (
     "get_error_message",
 )
 
-from .database.user import User
-
 
 def get_error_message(error) -> str:
     msg = None
+
     if isinstance(error, BotMissingPermissions):
         msg = f"The bot is missing these permissions to do this command:\n{error.missing_permissions}"
 
