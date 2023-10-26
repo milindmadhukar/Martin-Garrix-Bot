@@ -28,7 +28,7 @@ import-expression==1.1.4
 multidict==6.0.2
 mystbin.py==2.1.2
 Pillow==9.1.1
-protobuf==3.20.1
+protobuf==3.20.2
 psutil==5.9.0
 pyasn1==0.4.8
 pyasn1-modules==0.2.8
