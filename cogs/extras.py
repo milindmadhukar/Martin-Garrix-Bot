@@ -165,7 +165,7 @@ class Extras(commands.Cog):
 
         for channel in channels:
             # Get all messages in the channel until timestamp
-            messages = channel.history(limit=1000000, after=datetime.fromtimestamp(1699479631))
+            messages = await channel.history(limit=1000000, after=datetime.fromtimestamp(1699479631)).flatten()
             print(f"Channel: {channel.name}", "Messages: ", len(messages))
 
             for message in messages:
