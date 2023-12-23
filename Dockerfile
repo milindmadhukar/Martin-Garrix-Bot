@@ -1,10 +1,11 @@
 # Python image to run discord bot
 
-FROM python:3.11-slim-buster
+FROM python:3.11-alpine3.18
 
 # Set working directory
 
-APK add --no-cache gcc musl-dev linux-headers
+RUN apk add --update alpine-sdk
+RUN apk add gcc
 
 WORKDIR /usr/src/app
 
