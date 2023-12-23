@@ -164,24 +164,30 @@ class Extras(commands.Cog):
         channels = guild.channels
 
         for channel in channels:
+            print(channel.name)
+            if not isinstance(channel, discord.TextChannel):
+                continue
             # Get all messages in the channel until timestamp
-            messages = await channel.history(limit=1000000, after=datetime.fromtimestamp(1699479631)).flatten()
-            print(f"Channel: {channel.name}", "Messages: ", len(messages))
+            messages = [message async for message in channel.history(limit=1000000, after=datetime.utcfromtimestamp(1699479631))]
 
             for message in messages:
                 if message.author.bot:
                     continue
 
-                query = """INSERT INTO messages ( message_id, channel_id, author_id, content, timestamp)
-                           VALUES ( $1, $2, $3, $4, $5 )
-                           ON CONFLICT DO NOTHING"""
-                await self.bot.database.execute(
-                    query, message.id, message.channel.id, message.author.id, message.content, message.created_at
-                )
+                try:
+                    query = """INSERT INTO messages ( message_id, channel_id, author_id, content, timestamp)
+                               VALUES ( $1, $2, $3, $4, $5 )
+                               """
+                    await self.bot.database.execute(
+                        query, message.id, message.channel.id, message.author.id, message.content, message.created_at.replace(tzinfo=None)
+                    )
 
-                await self.bot.database.execute(
-                    "UPDATE users SET messages_sent = messages_sent + 1 WHERE id = $1", message.author.id
-                )
+                    await self.bot.database.execute(
+                        "UPDATE users SET messages_sent = messages_sent + 1 WHERE id = $1", message.author.id
+                    )
+                except Exception as e:
+                    print("Message already existed.")
+                    print(e)
 
 
 async def setup(bot):
