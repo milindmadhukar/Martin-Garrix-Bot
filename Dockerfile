@@ -4,6 +4,8 @@ FROM python:3.11-slim-buster
 
 # Set working directory
 
+APK add --no-cache gcc musl-dev linux-headers
+
 WORKDIR /usr/src/app
 
 # Copy requirements.txt
