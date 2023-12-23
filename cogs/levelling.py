@@ -11,6 +11,7 @@ from utils.helpers import rank_picture, failure_embed
 import asyncio
 from io import BytesIO
 
+
 from utils.helpers import get_user_level_data, humanize
 
 
@@ -35,7 +36,7 @@ class Levelling(commands.Cog):
 
         user = await self.bot.database.get_user(member.id)
         if user is not None:
-            ctx.defer()
+            await ctx.defer()
 
             pfp = member.display_avatar.with_size(256).with_static_format("png")
             img_data = BytesIO(await pfp.read())

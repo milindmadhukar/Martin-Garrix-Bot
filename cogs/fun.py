@@ -94,7 +94,7 @@ class Fun(commands.Cog):
 
         # Check if it is a command interaction
 
-        ctx.defer()
+        await ctx.defer()
 
         query = "SELECT * FROM songs WHERE lyrics IS NOT NULL ORDER BY RANDOM() LIMIT 1"
         if difficulty == "easy":
