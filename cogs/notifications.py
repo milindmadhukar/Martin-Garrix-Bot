@@ -88,6 +88,7 @@ class Notifications(commands.Cog):
             playlist_ids = [
                 "UU5H_KXkPbEsGs0tFt8R35mA",
                 "PLwPIORXMGwchuy4DTiIAasWRezahNrbUJ",
+                "UULOgD3uxJsoQagP8lFCuvow"
             ]
             for playlist_id in playlist_ids:
                 video = self.youtube.playlistItems().list(
