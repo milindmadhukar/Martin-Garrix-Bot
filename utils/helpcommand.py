@@ -1,5 +1,5 @@
-import disnake
-from disnake.ext import commands
+import discord
+from discord.ext import commands
 import itertools
 
 __all__ = ("HelpCommand",)
@@ -10,9 +10,9 @@ class HelpCommand(commands.HelpCommand):
     This class subclasses :class:`commands.HelpCommand` and extra features to it and a new design catered to this bot.
     """
 
-    def custom_embed(self, **kwargs) -> disnake.Embed:
-        return disnake.Embed(color=disnake.Colour.teal(), **kwargs).set_footer(
-            text=f"Called by: {self.context.author}"
+    def custom_embed(self, **kwargs) -> discord.Embed:
+        return discord.Embed(color=discord.Colour.teal(), **kwargs).set_footer(
+            text=f"Called by: {self.context.author.name}"
         )
 
     def command_desk(self, command: commands.Command, add_example=False):

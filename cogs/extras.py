@@ -1,7 +1,8 @@
+from datetime import datetime
 import typing
 
-import disnake
-from disnake.ext import commands, tasks
+import discord
+from discord.ext import commands, tasks
 
 from core.MartinBotBase import MartinGarrixBot
 from utils.checks import is_admin_check, is_milind_check
@@ -15,6 +16,7 @@ from utils.command_helpers import (
 from utils.helpers import success_embed
 
 
+# TODO: Fill in all the descriptions
 class Extras(commands.Cog):
     def __init__(self, bot: MartinGarrixBot):
         self.bot = bot
@@ -37,68 +39,42 @@ class Extras(commands.Cog):
         if len(status) >= 16:
             status = name
         await self.bot.change_presence(
-            activity=disnake.Activity(type=disnake.ActivityType.listening, name=status)
+            activity=discord.Activity(type=discord.ActivityType.listening, name=status)
         )
 
-    @commands.command(
+    @commands.hybrid_command(
+        name="8ball",
+        aliases=["eightball"],
         help="8 ball command to make decisions",
-        aliases=["8ball", "magicball"],
     )
     async def eightball(self, ctx: commands.Context, *, question: str):
+        print("")
         return await ctx.send(embed=get_eightball_embed(question))
 
-    @commands.slash_command(
-        name="8ball",
-        description="8 ball command to make decisions",
-    )
-    async def eightball_slash(
-        self,
-        interaction: disnake.ApplicationCommandInteraction,
-        question: str = commands.Param(
-            description="Enter your question to ask the magic 8 ball."
-        ),
-    ):
-        return await interaction.send(embed=get_eightball_embed(question))
-
-    @commands.command(
-        help="Check the latency of the bot from the server.", aliases=["latency"]
+    @commands.hybrid_command(
+        name="ping",
+        help="Check the latency of the bot from the server.",
+        aliases=["latency"],
     )
     async def ping(self, ctx: commands.Context):
-        await ctx.send(f"**Pong! {round(self.bot.latency * 1000)}ms** \U0001F3D3")
-
-    @commands.slash_command(
-        name="ping", description="Check the latency of the bot from the server."
-    )
-    async def ping_slash(self, interaction: disnake.ApplicationCommandInteraction):
-        await interaction.send(
-            f"**Pong! {round(self.bot.latency * 1000)}ms** \U0001F3D3"
+        await ctx.send(
+            f"**Pong! {round(self.bot.latency * 1000)}ms** \U0001F3D3", ephemeral=True
         )
 
-    @commands.command(
+    @commands.hybrid_command(
+        name="avatar",
         help="Get the avatar of a member.",
-        aliases=["av", "pfp", "profilepic", "profilepicture"],
     )
-    async def avatar(self, ctx: commands.Context, member: disnake.Member = None):
+    async def avatar(self, ctx: commands.Context, member: discord.Member = None):
         member = member or ctx.author
-        embed = disnake.Embed(title=str(member), color=member.color)
+        embed = discord.Embed(title=str(member), color=member.color)
         embed.set_image(url=member.display_avatar.with_size(512).url)
-        await ctx.send(embed=embed)
+        return await ctx.send(embed=embed)
 
-    @commands.slash_command(name="avatar", description="Get the avatar of a member.")
-    async def avatar_slash(
-        self,
-        interaction: disnake.ApplicationCommandInteraction,
-        member: typing.Optional[disnake.Member] = commands.Param(
-            None, description="Enter the member whose avatar you wanna see."
-        ),
-    ):
-        member = member or interaction.author
-        embed = disnake.Embed(title=str(member), color=member.color)
-        embed.set_image(url=member.display_avatar.with_size(512).url)
-        return await interaction.send(embed=embed)
-
-    @commands.command(help="Get the total number of messages sent by a member.")
-    async def messages(self, ctx: commands.Context, member: disnake.Member = None):
+    @commands.hybrid_command(
+        name="messages", help="Get the total number of messages sent by a member."
+    )
+    async def messages(self, ctx: commands.Context, member: discord.Member = None):
         member = member or ctx.author
         query = "SELECT messages_sent FROM users WHERE id = $1"
         msg_count = await self.bot.database.fetchrow(query, member.id)
@@ -106,142 +82,107 @@ class Extras(commands.Cog):
 
         await ctx.send(embed=get_messages_embed(member, messages))
 
-    @commands.slash_command(
-        name="messages",
-        description="Get the total number of messages sent by a member.",
+    @commands.hybrid_command(
+        name="whois",
+        help="Get the info about a member or bot in the server.",
     )
-    async def messages_slash(
-        self,
-        interaction: disnake.ApplicationCommandInteraction,
-        member: typing.Optional[disnake.Member] = commands.Param(
-            None, description="Enter the member whose message count you want to see,"
-        ),
-    ):
-        member = member or interaction.author
-        query = "SELECT messages_sent FROM users WHERE id = $1"
-        msg_count = await self.bot.database.fetchrow(query, member.id)
-        messages = msg_count["messages_sent"]
-
-        await interaction.send(embed=get_messages_embed(member, messages))
-
-    @commands.command(
-        help="Get the info about a member or bot in the server.", aliases=["memberinfo"]
-    )
-    async def whois(self, ctx: commands.Context, member: disnake.Member = None):
+    async def whois(self, ctx: commands.Context, member: discord.Member = None):
         member = member or ctx.author
         user = await self.bot.database.get_user(member.id) if not member.bot else None
         return await ctx.send(embed=get_whois_embed(member, user))
 
-    @commands.slash_command(
-        name="whois", description="Get the info about a member or bot in the server."
-    )
-    async def whois_slash(
-        self,
-        interaction: disnake.ApplicationCommandInteraction,
-        member: typing.Optional[disnake.Member] = commands.Param(
-            None, description="Enter the member whose info you need."
-        ),
-    ):
-        member = member or interaction.author
-        user = await self.bot.database.get_user(member.id) if not member.bot else None
-
-        return await interaction.send(embed=get_whois_embed(member, user))
-
     @commands.check_any(is_admin_check(), is_milind_check())
-    @commands.command(help="Command to create an embed in the chat.", aliases=["em"])
+    @commands.hybrid_command(
+        name="embed",
+        help="Command to create an embed in the chat.",
+    )
     async def embed(
-        self, ctx: commands.Context, title: str, *, description: str = None
-    ):
-        await ctx.message.delete()
-        embed = disnake.Embed(title=title, colour=disnake.Colour.blurple())
-        if description is not None:
-            embed.description = description
-        await ctx.send(embed=embed)
-
-        return await ctx.send(
-            embed=await success_embed("Successfully sent the message.")
-        )
-
-    @commands.check_any(is_admin_check(), is_milind_check())
-    @commands.slash_command(
-        name="embed", description="Command to create an embed in the chat."
-    )
-    async def embed_slash(
         self,
-        interaction: disnake.ApplicationCommandInteraction,
-        channel: typing.Optional[disnake.TextChannel] = commands.Param(
-            None, description="Enter the channel to send the embed in."
-        ),
-        title: str = commands.Param(description="Enter the title of the embed."),
-        description: typing.Optional[str] = commands.Param(
-            None, description="Enter the description of the embed."
-        ),
+        ctx: commands.Context,
+        channel: typing.Optional[discord.TextChannel] = None,
+        title: str = None,
+        *,
+        description: str = None,
     ):
-        embed = disnake.Embed(title=title, colour=disnake.Colour.blurple())
+        if ctx.interaction is None:
+            await ctx.message.delete()
+        embed = discord.Embed(title=title, colour=discord.Colour.blurple())
         if description is not None:
             embed.description = description
-        channel = channel or interaction.channel
+        channel = channel or ctx.channel
         await channel.send(embed=embed)
 
-        return await interaction.send(
-            embed=await success_embed("Successfully sent the message."), ephemeral=True
-        )
-
-    @commands.check_any(is_admin_check(), is_milind_check())
-    @commands.command(help="Send a message in a channel.", aliases=["send"])
-    async def say(self, ctx, channel: disnake.TextChannel, *, message: str = None):
-        if message is None:
-            await ctx.send("Please provide a message.")
-        message = await commands.clean_content().convert(ctx=ctx, argument=message)
-        await channel.send(message)
         return await ctx.send(
-            embed=await success_embed("Successfully sent the message."), delete_after=10
+            embed=await success_embed("Successfully sent the message."),
+            ephemeral=True,
+            delete_after=10,
         )
 
     @commands.check_any(is_admin_check(), is_milind_check())
-    @commands.slash_command(name="say", description="Send a message in a channel.")
-    async def say_slash(
+    @commands.hybrid_command(
+        name="say",
+        help="Send a message in a channel.",
+    )
+    async def say(
         self,
-        interaction: disnake.ApplicationCommandInteraction,
-        channel: typing.Optional[disnake.TextChannel] = commands.Param(
-            None, description="Enter the channel you want to send the message in."
-        ),
-        message: str = commands.Param(
-            description="Enter your message to send in the channel"
-        ),
+        ctx: commands.Context,
+        channel: typing.Optional[discord.TextChannel] = None,
+        *,
+        message: str = None,
     ):
-        # message = await commands.clean_content().convert(ctx=inter, argument=message)
-        channel = channel or interaction.channel
+        if ctx.interaction is None:
+            await ctx.message.delete()
+
+        channel = channel or ctx.channel
         await channel.send(message)
 
-        return await interaction.send(
-            embed=await success_embed("Successfully sent the message."), ephemeral=True
+        return await ctx.send(
+            embed=await success_embed("Successfully sent the message."),
+            ephemeral=True,
+            delete_after=10,
         )
 
-    @commands.command(help="Gives you the info of the current server.")
+    @commands.hybrid_command(
+        name="serverinfo", help="Gives you the info of the current server."
+    )
     async def serverinfo(self, ctx: commands.Context):
-        guild: disnake.Guild = self.bot.guild
+        guild: discord.Guild = self.bot.guild
         return await ctx.send(embed=get_serverinfo_embed(guild))
 
-    @commands.slash_command(
-        name="serverinfo", description="Gives you the info of the current server."
+    @commands.hybrid_command(
+        name="info", help="Gives you the info about the bot and its creator."
     )
-    async def serverinfo_slash(
-        self, interaction: disnake.ApplicationCommandInteraction
-    ):
-        guild: disnake.Guild = self.bot.guild
-        return await interaction.send(embed=get_serverinfo_embed(guild))
-
-    @commands.command(help="Gives you the info about the bot and its creator.")
     async def info(self, ctx: commands.Context):
         return await ctx.send(embed=await get_info_embed(self.bot))
 
-    @commands.slash_command(
-        name="info", description="Gives you the info about the bot and its creator."
+    @is_milind_check()
+    @commands.command(
+        name="recover"
     )
-    async def info_slash(self, interaction: disnake.ApplicationCommandInteraction):
-        return await interaction.send(embed=await get_info_embed(self.bot))
+    async def recover(self, ctx: commands.Context):
+        guild: discord.Guild = self.bot.guild
+        channels = guild.channels
+
+        for channel in channels:
+            # Get all messages in the channel until timestamp
+            messages = channel.history(limit=1000000, after=datetime.fromtimestamp(1699479631))
+            print(f"Channel: {channel.name}", "Messages: ", len(messages))
+
+            for message in messages:
+                if message.author.bot:
+                    continue
+
+                query = """INSERT INTO messages ( message_id, channel_id, author_id, content, timestamp)
+                           VALUES ( $1, $2, $3, $4, $5 )
+                           ON CONFLICT DO NOTHING"""
+                await self.bot.database.execute(
+                    query, message.id, message.channel.id, message.author.id, message.content, message.created_at
+                )
+
+                await self.bot.database.execute(
+                    "UPDATE users SET messages_sent = messages_sent + 1 WHERE id = $1", message.author.id
+                )
 
 
-def setup(bot):
-    bot.add_cog(Extras(bot))
+async def setup(bot):
+    await bot.add_cog(Extras(bot))

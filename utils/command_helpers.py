@@ -1,10 +1,10 @@
-import disnake
+import discord
 import random
 from .database.user import User
 import psutil
 import platform
 
-from disnake.ext.commands import (
+from discord.ext.commands import (
     MissingPermissions,
     BotMissingPermissions,
     MissingRole,
@@ -73,7 +73,7 @@ def get_error_message(error) -> str:
     return msg
 
 
-def get_eightball_embed(question: str) -> disnake.Embed:
+def get_eightball_embed(question: str) -> discord.Embed:
     responses = [
         "As I see it, yes.",
         "Ask again later.",
@@ -97,26 +97,26 @@ def get_eightball_embed(question: str) -> disnake.Embed:
         "You may rely on it.",
     ]
     return (
-        disnake.Embed(title="The Magic 8 Ball \U0001F3B1 replies")
+        discord.Embed(title="The Magic 8 Ball \U0001F3B1 replies")
         .add_field(name="Question", value=question, inline=False)
         .add_field(name="Answer", value=random.choice(responses), inline=False)
     )
 
 
-def get_messages_embed(member: disnake.Member, msg_count: int) -> disnake.Embed:
-    embed = disnake.Embed(color=disnake.Color.orange())
+def get_messages_embed(member: discord.Member, msg_count: int) -> discord.Embed:
+    embed = discord.Embed(color=discord.Color.orange())
     embed.set_author(name=member.display_name, icon_url=member.display_avatar.url)
     embed.add_field(name="Count", value=msg_count)
     embed.set_footer(text=f"User ID: {member.id}")
     return embed
 
 
-def get_whois_embed(member: disnake.Member, user: User) -> disnake.Embed:
+def get_whois_embed(member: discord.Member, user: User) -> discord.Embed:
     perm_list = [perm[0] for perm in member.guild_permissions if perm[1]]
     perms_list = [perm.replace("_", " ").title() for perm in perm_list]
     perms = ", ".join(perms_list)
 
-    embed = disnake.Embed(description=f"{member.mention}", color=member.color)
+    embed = discord.Embed(description=f"{member.mention}", color=member.color)
     embed.set_author(name=str(member), icon_url=member.display_avatar.url)
     if user is not None:
         embed.add_field(name="Messages sent", value=user.messages_sent)
@@ -148,8 +148,8 @@ def get_whois_embed(member: disnake.Member, user: User) -> disnake.Embed:
     return embed
 
 
-def get_serverinfo_embed(guild: disnake.Guild) -> disnake.Embed:
-    embed = disnake.Embed(title=guild.name, colour=disnake.Colour.blue())
+def get_serverinfo_embed(guild: discord.Guild) -> discord.Embed:
+    embed = discord.Embed(title=guild.name, colour=discord.Colour.blue())
     embed.add_field(name="Owner", value=guild.owner.mention)
     embed.add_field(
         name="Created At", value=guild.created_at.strftime("%b %d %Y, %H:%M:%S")
@@ -171,7 +171,7 @@ def get_serverinfo_embed(guild: disnake.Guild) -> disnake.Embed:
     return embed
 
 
-async def get_info_embed(bot) -> disnake.Embed:
+async def get_info_embed(bot) -> discord.Embed:
     guild = bot.guild
     platform_details = platform.platform()
     users = await bot.database.fetchrow("""SELECT COUNT(*) FROM users""")
@@ -188,10 +188,10 @@ async def get_info_embed(bot) -> disnake.Embed:
         korta = korta.mention
     cpu_usage = f"{psutil.cpu_percent()}%"
     ram_usage = f"{psutil.virtual_memory().percent}%"
-    embed = disnake.Embed(
+    embed = discord.Embed(
         title=f"{bot.user.name}!",
         description="A multipurpose bot created exclusively for Garrixers.",
-        colour=disnake.Colour.blurple(),
+        colour=discord.Colour.blurple(),
     )
     embed.add_field(name="Creator", value=f"{milind}", inline=False)
     embed.add_field(name="Contributor", value=f"{korta}", inline=False)
@@ -213,14 +213,10 @@ async def get_info_embed(bot) -> disnake.Embed:
     return embed
 
 
-def get_lyrics_embed(song_data) -> disnake.Embed:
-    embed = disnake.Embed(
-        title=f'{song_data["alias"]} - {song_data["name"]}',
-        description=song_data["lyrics"][:4096],
-        color=disnake.Colour.orange(),
+def get_lyrics_embed(lyrics) -> discord.Embed:
+    embed = discord.Embed(
+        description=lyrics,
+        color=discord.Colour.orange(),
     )
-
-    if song_data["thumbnail_url"] is not None:
-        embed.set_thumbnail(url=song_data["thumbnail_url"])
 
     return embed

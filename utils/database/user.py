@@ -1,5 +1,5 @@
 from datetime import datetime
-from disnake.ext import commands
+from discord.ext import commands
 
 __all__ = ("User",)
 

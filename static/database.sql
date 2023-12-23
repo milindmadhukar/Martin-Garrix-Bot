@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS messages (
     author_id bigint NOT NULL,
     content character varying(2050) NOT NULL,
     "timestamp" timestamp without time zone DEFAULT (now())::timestamp without time zone
+    -- UNIQUE (message_id, channel_id, author_id, "timestamp");
 );
 
 CREATE TABLE IF NOT EXISTS tags (

@@ -1,7 +1,7 @@
 from io import BytesIO
 from itertools import cycle
 
-import disnake
+import discord
 from PIL import ImageFont, Image, ImageDraw, ImageOps
 
 from utils.database.user import User
@@ -18,10 +18,10 @@ __all = (
 
 templates = cycle(["red", "green", "pink", "yellow"])
 
-async def success_embed(title: str, description: str = None) -> disnake.Embed:
+async def success_embed(title: str, description: str = None) -> discord.Embed:
     """
     |coro|
-    This function constructs a :class:`disnake.Embed` object with a success emoji and the embed colour is
+    This function constructs a :class:`discord.Embed` object with a success emoji and the embed colour is
     green.
 
     Parameters:
@@ -30,11 +30,11 @@ async def success_embed(title: str, description: str = None) -> disnake.Embed:
                            This parameter is optional.
 
     Returns:
-        (disnake.Embed): The constructed embed object.
+        (discord.Embed): The constructed embed object.
     """
-    embed = disnake.Embed(
+    embed = discord.Embed(
         title=f"<a:tick:810462879374770186>  {title}",
-        colour=disnake.Colour.green(),
+        colour=discord.Colour.green(),
     )
     if description is not None:
         embed.description = description
@@ -42,9 +42,9 @@ async def success_embed(title: str, description: str = None) -> disnake.Embed:
     return embed
 
 
-async def failure_embed(title: str, description: str = None) -> disnake.Embed:
+async def failure_embed(title: str, description: str = None) -> discord.Embed:
     """
-    This function constructs a :class:`disnake.Embed` object with a failure emoji and the embed colour is
+    This function constructs a :class:`discord.Embed` object with a failure emoji and the embed colour is
     red.
 
     Parameters:
@@ -53,11 +53,11 @@ async def failure_embed(title: str, description: str = None) -> disnake.Embed:
                            This parameter is optional.
 
     Returns:
-        (disnake.Embed): The constructed embed object.
+        (discord.Embed): The constructed embed object.
     """
-    embed = disnake.Embed(
+    embed = discord.Embed(
         title=f"<a:cross:810462920810561556>  {title}",
-        colour=disnake.Colour.red(),
+        colour=discord.Colour.red(),
     )
 
     if description is not None:
@@ -73,7 +73,7 @@ def parse_amount(amount: str, other_quantity: int) ->  int:
     """
     if amount.isnumeric():
         return int(amount)
-    elif amount == "all":
+    elif amount in ["full", "all", "complete", "everything"]:
         return other_quantity
     elif amount == "half":
         return other_quantity // 2
@@ -166,7 +166,7 @@ def rank_picture(user: User, member_name: str, rank: int, img_data: BytesIO) -> 
     mask = Image.new("L", bigsize, 0)
     draw = ImageDraw.Draw(mask)
     draw.ellipse((0, 0) + bigsize, fill=255)
-    mask = mask.resize(pfp.size, Image.ANTIALIAS)
+    mask = mask.resize(pfp.size, Image.Resampling.LANCZOS)
     pfp.putalpha(mask)
     pfp = ImageOps.fit(pfp, mask.size, centering=(0.5, 0.5))
     pfp.putalpha(mask)

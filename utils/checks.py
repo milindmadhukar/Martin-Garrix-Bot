@@ -1,8 +1,8 @@
 import typing
 
-import disnake
-from disnake.ext import commands
-from disnake.ext.commands import check
+import discord
+from discord.ext import commands
+from discord.ext.commands import check
 from utils.enums import Config
 
 __all = (
@@ -21,13 +21,13 @@ __all = (
 )
 
 
-def is_admin(member: disnake.Member) -> bool:
+def is_admin(member: discord.Member) -> bool:
     """
-    This function takes a member ( :class:`disnake.Member` ) object and checks if the member has the admin role or not.
+    This function takes a member ( :class:`discord.Member` ) object and checks if the member has the admin role or not.
     If the member has the admin role, it will return True, else False.
 
     Parameters:
-        member (disnake.Member): This parameter takes the member object.
+        member (discord.Member): This parameter takes the member object.
 
     Returns:
         ( bool ): If the member has the role, it will return True, else False.
@@ -38,22 +38,24 @@ def is_admin(member: disnake.Member) -> bool:
     return False
 
 
-def is_admin_check() -> typing.Callable[[commands.Context, disnake.ApplicationCommandInteraction], bool]:
+def is_admin_check() -> (
+    typing.Callable[[commands.Context, discord.Interaction], bool]
+):
     """
     A :class:`commands.check` decorator that checks if a user is an admin.
-    It takes a :class:`disnake.ApplicationCommandInteraction` ( if the check is used on a slash command decorator ) or
+    It takes a :class:`discord.Interaction` ( if the check is used on a slash command decorator ) or
     :class:`commands.Context` ( if it used on a normal prefix command decorator ), and returns a bool.
     If the user is not an admin, it will return False, otherwise it will return True.
     """
 
     def predicate(
-            context: typing.Union[commands.Context, disnake.ApplicationCommandInteraction]
+        context: typing.Union[commands.Context, discord.Interaction]
     ) -> bool:
         """
-        An inner function that takes a typing.Union[:class:`commands.Context`, :class:`disnake.ApplicationCommandInteraction`] object and returns a bool.
+        An inner function that takes a typing.Union[:class:`commands.Context`, :class:`discord.Interaction`] object and returns a bool.
 
         Parameters:
-            context (typing.Union[commands.Context, disnake.ApplicationCommandInteraction]): This parameter takes command data object.
+            context (typing.Union[commands.Context, discord.Interaction]): This parameter takes command data object.
 
         Returns:
             ( bool ): Returns True, if the specified condition pass in this check, else this function will return False.
@@ -63,13 +65,13 @@ def is_admin_check() -> typing.Callable[[commands.Context, disnake.ApplicationCo
     return check(predicate)
 
 
-def is_milind(member: disnake.Member) -> bool:
+def is_milind(member: discord.Member) -> bool:
     """
-    This function checks that if the id of a member ( :class:`disnake.Member` ) is the bot owner id ( 421608483629301772 ).
+    This function checks that if the id of a member ( :class:`discord.Member` ) is the bot owner id ( 421608483629301772 ).
     If the ID of the member is the ID of the bot owner, then it will True, otherwise it will return False.
 
     Parameters:
-        member (disnake.Member): This parameter takes the member object that needs to be checked.
+        member (discord.Member): This parameter takes the member object that needs to be checked.
 
     Returns:
         ( bool ): If the ID of the member is the ID of the bot owner, then it will True, otherwise it will return False.
@@ -77,22 +79,24 @@ def is_milind(member: disnake.Member) -> bool:
     return member.id == 421608483629301772
 
 
-def is_milind_check() -> typing.Callable[[commands.Context, disnake.ApplicationCommandInteraction], bool]:
+def is_milind_check() -> (
+    typing.Callable[[commands.Context, discord.Interaction], bool]
+):
     """
     A :class:`commands.check` decorator that checks if a user is the bot owner.
-    It takes a :class:`disnake.ApplicationCommandInteraction` ( if the check is used on a slash command decorator ) or
+    It takes a :class:`discord.Interaction` ( if the check is used on a slash command decorator ) or
     :class:`commands.Context` ( if it used on a normal prefix command decorator ), and returns a bool.
     If the user is not the bot owner, it will return False, otherwise it will return True.
     """
 
     def predicate(
-            context: typing.Union[commands.Context, disnake.ApplicationCommandInteraction]
+        context: typing.Union[commands.Context, discord.Interaction]
     ) -> bool:
         """
-        An inner function that takes a typing.Union[:class:`commands.Context`, :class:`disnake.ApplicationCommandInteraction`] object and returns a bool.
+        An inner function that takes a typing.Union[:class:`commands.Context`, :class:`discord.Interaction`] object and returns a bool.
 
         Parameters:
-            context (typing.Union[commands.Context, disnake.ApplicationCommandInteraction]): This parameter takes command data object.
+            context (typing.Union[commands.Context, discord.Interaction]): This parameter takes command data object.
 
         Returns:
             ( bool ): Returns True, if the specified condition pass in this check, else this function will return False.
@@ -102,13 +106,13 @@ def is_milind_check() -> typing.Callable[[commands.Context, disnake.ApplicationC
     return check(predicate)
 
 
-def is_mod(member: disnake.Member) -> bool:
+def is_mod(member: discord.Member) -> bool:
     """
-    This function takes a member ( :class:`disnake.Member` ) object and checks if the member has the mod role or not.
+    This function takes a member ( :class:`discord.Member` ) object and checks if the member has the mod role or not.
     If the member has the mod role, it will return True, else False.
 
     Parameters:
-        member (disnake.Member): This parameter takes the member object.
+        member (discord.Member): This parameter takes the member object.
 
     Returns:
         ( bool ): If the member has the role, it will return True, else False.
@@ -119,23 +123,25 @@ def is_mod(member: disnake.Member) -> bool:
     return is_admin(member)
 
 
-def is_mod_check() -> typing.Callable[[commands.Context, disnake.ApplicationCommandInteraction], bool]:
+def is_mod_check() -> (
+    typing.Callable[[commands.Context, discord.Interaction], bool]
+):
     """
     A :class:`commands.check` decorator that checks if a user is a moderator.
-    It takes a :class:`disnake.ApplicationCommandInteraction` ( if the check is used on a slash command decorator ) or
+    It takes a :class:`discord.Interaction` ( if the check is used on a slash command decorator ) or
     :class:`commands.Context` ( if it used on a normal prefix command decorator ), and returns a bool.
     If the user is not a moderator, it will return False, otherwise it will return True.
     """
 
     def predicate(
-            context: typing.Union[commands.Context, disnake.ApplicationCommandInteraction]
+        context: typing.Union[commands.Context, discord.Interaction]
     ) -> bool:
         """
-        An inner function that takes a typing.Union[:class:`commands.Context`, :class:`disnake.ApplicationCommandInteraction`] 
+        An inner function that takes a typing.Union[:class:`commands.Context`, :class:`discord.Interaction`]
         object and returns a bool.
 
         Parameters:
-            context (typing.Union[commands.Context, disnake.ApplicationCommandInteraction]): This parameter takes command data object.
+            context (typing.Union[commands.Context, discord.Interaction]): This parameter takes command data object.
 
         Returns:
             ( bool ): Returns True, if the specified condition pass in this check, else this function will return False.
@@ -145,13 +151,13 @@ def is_mod_check() -> typing.Callable[[commands.Context, disnake.ApplicationComm
     return check(predicate)
 
 
-def is_staff(member: disnake.Member) -> bool:
+def is_staff(member: discord.Member) -> bool:
     """
-    This function takes a member ( :class:`disnake.Member` ) object and checks if the member has the staff role or not.
+    This function takes a member ( :class:`discord.Member` ) object and checks if the member has the staff role or not.
     If the member has the staff role, it will return True, else False.
 
     Parameters:
-        member (disnake.Member): This parameter takes the member object.
+        member (discord.Member): This parameter takes the member object.
 
     Returns:
         ( bool ): If the member has the role, it will return True, else False.
@@ -162,22 +168,24 @@ def is_staff(member: disnake.Member) -> bool:
     return False
 
 
-def is_staff_check() -> typing.Callable[[commands.Context, disnake.ApplicationCommandInteraction], bool]:
+def is_staff_check() -> (
+    typing.Callable[[commands.Context, discord.Interaction], bool]
+):
     """
     A :class:`commands.check` decorator that checks if a user is a staff.
-    It takes a :class:`disnake.ApplicationCommandInteraction` ( if the check is used on a slash command decorator ) or
+    It takes a :class:`discord.Interaction` ( if the check is used on a slash command decorator ) or
     :class:`commands.Context` ( if it used on a normal prefix command decorator ), and returns a bool.
     If the user is not staff, it will return False, otherwise it will return True.
     """
 
     def predicate(
-            context: typing.Union[commands.Context, disnake.ApplicationCommandInteraction]
+        context: typing.Union[commands.Context, discord.Interaction]
     ) -> bool:
         """
-        An inner function that takes a typing.Union[:class:`commands.Context`, :class:`disnake.ApplicationCommandInteraction`] object and returns a bool.
+        An inner function that takes a typing.Union[:class:`commands.Context`, :class:`discord.Interaction`] object and returns a bool.
 
         Parameters:
-            context (typing.Union[commands.Context, disnake.ApplicationCommandInteraction]): This parameter takes command data object.
+            context (typing.Union[commands.Context, discord.Interaction]): This parameter takes command data object.
 
         Returns:
             ( bool ): Returns True, if the specified condition pass in this check, else this function will return False.
@@ -187,13 +195,13 @@ def is_staff_check() -> typing.Callable[[commands.Context, disnake.ApplicationCo
     return check(predicate)
 
 
-def is_true_garrixer(member: disnake.Member) -> bool:
+def is_true_garrixer(member: discord.Member) -> bool:
     """
-    This function takes a member ( :class:`disnake.Member` ) object and checks if the member has the true garrixer role or not.
+    This function takes a member ( :class:`discord.Member` ) object and checks if the member has the true garrixer role or not.
     If the member has the true garrixer role, it will return True, else False.
 
     Parameters:
-        member (disnake.Member): This parameter takes the member object.
+        member (discord.Member): This parameter takes the member object.
 
     Returns:
         ( bool ): If the member has the role, it will return True, else False.
@@ -204,20 +212,24 @@ def is_true_garrixer(member: disnake.Member) -> bool:
     return is_mod(member)
 
 
-def is_true_garrixer_check() -> typing.Callable[[commands.Context, disnake.ApplicationCommandInteraction], bool]:
+def is_true_garrixer_check() -> (
+    typing.Callable[[commands.Context, discord.Interaction], bool]
+):
     """
     A :class:`commands.check` decorator that checks if a user has the true garrixer role or not.
-    It takes a :class:`disnake.ApplicationCommandInteraction` ( if the check is used on a slash command decorator ) or
+    It takes a :class:`discord.Interaction` ( if the check is used on a slash command decorator ) or
     :class:`commands.Context` ( if it used on a normal prefix command decorator ), and returns a bool.
     If the user does not have the true garrixer role, it will return False, otherwise it will return True.
     """
 
-    def predicate(context: typing.Union[commands.Context, disnake.ApplicationCommandInteraction]) -> bool:
+    def predicate(
+        context: typing.Union[commands.Context, discord.Interaction]
+    ) -> bool:
         """
-        An inner function that takes a typing.Union[:class:`commands.Context`, :class:`disnake.ApplicationCommandInteraction`] object and returns a bool.
+        An inner function that takes a typing.Union[:class:`commands.Context`, :class:`discord.Interaction`] object and returns a bool.
 
         Parameters:
-            context (typing.Union[commands.Context, disnake.ApplicationCommandInteraction]): This parameter takes command data object.
+            context (typing.Union[commands.Context, discord.Interaction]): This parameter takes command data object.
 
         Returns:
             ( bool ): Returns True, if the specified condition pass in this check, else this function will return False.
@@ -227,13 +239,13 @@ def is_true_garrixer_check() -> typing.Callable[[commands.Context, disnake.Appli
     return check(predicate)
 
 
-def is_garrixer(member: disnake.Member) -> bool:
+def is_garrixer(member: discord.Member) -> bool:
     """
-    This function takes a member ( :class:`disnake.Member` ) object and checks if the member has the garrixer role or not.
+    This function takes a member ( :class:`discord.Member` ) object and checks if the member has the garrixer role or not.
     If the member has the garrixer role, it will return True, else False.
 
     Parameters:
-        member (disnake.Member): This parameter takes the member object.
+        member (discord.Member): This parameter takes the member object.
 
     Returns:
         ( bool ): If the member has the role, it will return True, else False.
@@ -244,19 +256,24 @@ def is_garrixer(member: disnake.Member) -> bool:
     return is_true_garrixer(member)
 
 
-def is_garrixer_check() -> typing.Callable[[commands.Context, disnake.ApplicationCommandInteraction], bool]:
+def is_garrixer_check() -> (
+    typing.Callable[[commands.Context, discord.Interaction], bool]
+):
     """
     A :class:`commands.check` decorator that checks if a user has the true garrixer role or not.
-    It takes a :class:`disnake.ApplicationCommandInteraction` ( if the check is used on a slash command decorator ) or
+    It takes a :class:`discord.Interaction` ( if the check is used on a slash command decorator ) or
     :class:`commands.Context` ( if it used on a normal prefix command decorator ), and returns a bool.
     If the user does not have the true garrixer role, it will return False, otherwise it will return True.
     """
-    def predicate(context: typing.Union[commands.Context, disnake.ApplicationCommandInteraction]) -> bool:
+
+    def predicate(
+        context: typing.Union[commands.Context, discord.Interaction]
+    ) -> bool:
         """
-        An inner function that takes a typing.Union[:class:`commands.Context`, :class:`disnake.ApplicationCommandInteraction`] object and returns a bool.
+        An inner function that takes a typing.Union[:class:`commands.Context`, :class:`discord.Interaction`] object and returns a bool.
 
         Parameters:
-            context (typing.Union[commands.Context, disnake.ApplicationCommandInteraction]): This parameter takes command data object.
+            context (typing.Union[commands.Context, discord.Interaction]): This parameter takes command data object.
 
         Returns:
             ( bool ): Returns True, if the specified condition pass in this check, else this function will return False.

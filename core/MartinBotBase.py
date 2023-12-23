@@ -6,11 +6,11 @@ import traceback
 import typing
 from typing import Optional
 
-import disnake
+import discord
 import dotenv
 from aiohttp import ClientSession
-from disnake import AllowedMentions, Intents, Message
-from disnake.ext import commands
+from discord import AllowedMentions, Intents, Message
+from discord.ext import commands
 
 from utils import failure_embed
 from utils.database import Message
@@ -18,6 +18,8 @@ from utils.database.client import Database
 from utils.enums import Config
 from utils.helpcommand import HelpCommand
 from utils.command_helpers import get_error_message
+
+from discord.ext.commands.errors import ExtensionAlreadyLoaded
 
 
 class MartinGarrixBot(commands.Bot):
@@ -43,27 +45,9 @@ class MartinGarrixBot(commands.Bot):
         )
 
         self.session: Optional[ClientSession] = None
-        self.start_time = disnake.utils.utcnow()
+        self.start_time = discord.utils.utcnow()
         self.bot_config = Config
         self.database: typing.Optional[Database] = None
-
-    def load_cogs(self, exts: typing.Iterable[str]) -> None:
-        """
-        This method loads all the cogs to the bot from the specified folder.
-        Parameters:
-            exts (Iterable[list]): A list of extensions to load.
-        """
-
-        for m in pkgutil.iter_modules(exts):
-            # a much better way to load cogs
-            module = f"cogs.{m.name}"
-            try:
-                self.load_extension(module)
-                print(f"Loaded extension '{m.name}'")
-            except Exception as e:
-                traceback.print_exception(type(e), e, e.__traceback__, file=sys.stderr)
-        self.load_extension("jishaku")
-        print(f"Loaded extension 'jishaku'")
 
     def set_configuration_attributes(self):
         self.guild = self.get_guild(self.bot_config.GUILD_ID.value)
@@ -118,6 +102,12 @@ class MartinGarrixBot(commands.Bot):
             else None
         )
 
+        self.sing_along_channel = (
+            self.get_channel(self.bot_config.SING_ALONG_CHANNEL.value)
+            if self.bot_config.SING_ALONG_CHANNEL is not None
+            else None
+        )
+
         self.staff_role = self.guild.get_role(self.bot_config.STAFF_ROLE.value)
         self.moderator_role = self.guild.get_role(self.bot_config.MODERATOR_ROLE.value)
         self.admin_role = self.guild.get_role(self.bot_config.ADMIN_ROLE.value)
@@ -140,6 +130,34 @@ class MartinGarrixBot(commands.Bot):
         """
         await self.wait_until_ready()
         self.set_configuration_attributes()
+
+        cogs = [
+            "extras",
+            "fun",
+            "levelling",
+            "music",
+            "notifications",
+            "polls",
+            "sing_along",
+            "tag"
+        ]
+
+        for cog in cogs:
+            ext = f"cogs.{cog}"
+            try:
+                await self.load_extension(ext)
+                print(f"Loaded extension '{ext}'")
+            except ExtensionAlreadyLoaded:
+                print(f"Extension {ext} is already loaded.")
+                pass
+            except Exception as e:
+                traceback.print_exception(type(e), e, e.__traceback__, file=sys.stderr)
+
+        # await self.load_extension("jishaku")
+        print(f"Loaded extension 'jishaku'")
+
+        await self.tree.sync()
+
         print(
             f"----------Bot Initialization.-------------\n"
             f"Bot name: {self.user.name}\n"
@@ -149,7 +167,9 @@ class MartinGarrixBot(commands.Bot):
             f"------------------------------------------"
         )
 
-    async def on_message(self, message: disnake.Message):
+        print("Bot is ready.")
+
+    async def on_message(self, message: discord.Message) -> None:
         await self.wait_until_ready()
         if not message.guild:
             return
@@ -160,20 +180,22 @@ class MartinGarrixBot(commands.Bot):
         )
         return await self.process_commands(message)
 
-    async def on_message_delete(self, message: disnake.Member):
+    async def on_message_delete(self, message: discord.Member) -> None:
         if message.embeds or message.author.bot:
             return
+
         if self.delete_logs_channel is not None:
-            embed = disnake.Embed(
+            embed = discord.Embed(
                 description=f"Message deleted by {message.author.mention} in {message.channel.mention}",
-                color=disnake.Color.dark_orange(),
+                color=discord.Color.dark_orange(),
             )
+
             embed.add_field(name="Content", value=message.content)
             await self.delete_logs_channel.send(embed=embed)
 
     async def on_message_edit(
-        self, message_before: disnake.Message, message_after: disnake.Message
-    ):
+        self, message_before: discord.Message, message_after: discord.Message
+    ) -> None:
         if message_before.embeds or message_after.embeds:
             return
         if message_before.author.bot or message_after.author.bot:
@@ -182,10 +204,11 @@ class MartinGarrixBot(commands.Bot):
         await Message.on_message(
             bot=self, message=message_after, xp_multiplier=self.xp_multiplier
         )
+
         if self.edit_logs_channel is not None:
-            embed = disnake.Embed(
+            embed = discord.Embed(
                 description=f"Message edited by {message_before.author.mention} in {message_before.channel.mention}",
-                color=disnake.Color.gold(),
+                color=discord.Color.gold(),
             )
             embed.add_field(name="Original Message", value=f"{message_before.content}")
             embed.add_field(
@@ -194,8 +217,8 @@ class MartinGarrixBot(commands.Bot):
             )
             await self.edit_logs_channel.send(embed=embed)
 
-    async def on_command_error(self, ctx: commands.Context, error):
-        if hasattr(ctx.command, 'on_error'):
+    async def on_command_error(self, ctx: commands.Context, error: Exception) -> None:
+        if hasattr(ctx.command, "on_error"):
             return
         msg = get_error_message(error)
         if msg is None:
@@ -206,9 +229,9 @@ class MartinGarrixBot(commands.Bot):
         return await message.delete(delay=20.0)
 
     async def on_slash_command_error(
-        self, interaction: disnake.ApplicationCommandInteraction, error: Exception
+        self, interaction: discord.Interaction, error: Exception
     ) -> None:
-        if hasattr(interaction.application_command, 'on_error'):
+        if hasattr(interaction.application_command, "on_error"):
             return
         msg = get_error_message(error)
         if msg is None:
@@ -216,7 +239,7 @@ class MartinGarrixBot(commands.Bot):
 
         return await interaction.send(embed=await failure_embed(msg), ephemeral=True)
 
-    async def handle_error(self, ctx: commands.Context, error) -> disnake.Message:
+    async def handle_error(self, ctx: commands.Context, error) -> discord.Message:
         print(error)
         error_channel = self.get_channel(int(os.environ.get("ERROR_CHANNEL")))
         trace = traceback.format_exception(type(error), error, error.__traceback__)
@@ -225,9 +248,9 @@ class MartinGarrixBot(commands.Bot):
         for line in trace:
             paginator.add_line(line)
 
-        def embed_exception(text: str, *, index: int = 0) -> disnake.Embed:
-            embed = disnake.Embed(
-                color=disnake.Color(value=15532032),
+        def embed_exception(text: str, *, index: int = 0) -> discord.Embed:
+            embed = discord.Embed(
+                color=discord.Color(value=15532032),
                 description=f"Command that caused the error: {ctx.message.content} from {ctx.author.name}\nError: {error}'"
                 + "```py\n%s\n```" % text,
                 timestamp=datetime.datetime.utcnow(),
@@ -248,9 +271,7 @@ class MartinGarrixBot(commands.Bot):
             )
         )
 
-    async def handle_slash_error(
-        self, interaction: disnake.ApplicationCommandInteraction, error
-    ):
+    async def handle_slash_error(self, interaction: discord.Interaction, error):
         error_channel = self.get_channel(int(os.environ.get("ERROR_CHANNEL")))
         trace = traceback.format_exception(type(error), error, error.__traceback__)
         print(trace)
@@ -259,9 +280,9 @@ class MartinGarrixBot(commands.Bot):
         for line in trace:
             paginator.add_line(line)
 
-        def embed_exception(text: str, *, index: int = 0) -> disnake.Embed:
-            embed = disnake.Embed(
-                color=disnake.Color(value=15532032),
+        def embed_exception(text: str, *, index: int = 0) -> discord.Embed:
+            embed = discord.Embed(
+                color=discord.Color(value=15532032),
                 description=f"Command that caused the error: {interaction.application_command.name} from "
                 f"{interaction.author.name}\nError: {error}'" + "```py\n%s\n```" % text,
                 timestamp=datetime.datetime.utcnow(),

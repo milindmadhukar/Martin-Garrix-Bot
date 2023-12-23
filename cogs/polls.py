@@ -1,14 +1,13 @@
 import traceback
 
-import disnake
-from disnake.ext import commands
+import discord
+from discord.ext import commands
 
 import datetime
 
 from core.MartinBotBase import MartinGarrixBot
 
-# TODO: Poll slash
-
+# TODO: Poll slash command maybe?
 
 class Polls(commands.Cog):
     def __init__(self, bot: MartinGarrixBot):
@@ -29,7 +28,7 @@ class Polls(commands.Cog):
             10: "🔟",
         }
 
-    def poll_check(self, message: disnake.Message):
+    def poll_check(self, message: discord.Message):
         try:
             embed = message.embeds[0]
         except KeyError:
@@ -39,9 +38,9 @@ class Polls(commands.Cog):
         return False
 
     @commands.Cog.listener()
-    async def on_raw_reaction_add(self, payload: disnake.RawReactionActionEvent):
-        channel: disnake.TextChannel = self.bot.get_channel(payload.channel_id)
-        message: disnake.Message = await channel.fetch_message(payload.message_id)
+    async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
+        channel: discord.TextChannel = self.bot.get_channel(payload.channel_id)
+        message: discord.Message = await channel.fetch_message(payload.message_id)
 
         if payload.user_id == self.bot.user.id:
             return
@@ -87,14 +86,14 @@ class Polls(commands.Cog):
             ctx.command.reset_cooldown(ctx)
             return await ctx.send("You can't make a poll with more than 10 choices")
 
-        embed = disnake.Embed(
+        embed = discord.Embed(
             description=f"**{desc}**\n\n"
             + "\n\n".join(
                 f"{str(self.reactions[i])}  {choice}"
                 for i, choice in enumerate(choices, 1)
             ),
             timestamp=datetime.datetime.utcnow(),
-            color=disnake.colour.Color.gold(),
+            color=discord.colour.Color.gold(),
         )
         embed.set_footer(text=f"Poll by {str(ctx.author)}")
         msg = await ctx.send(embed=embed)
@@ -156,10 +155,10 @@ class Polls(commands.Cog):
             )
             desc = poll_embed.description.split("1️")[0]
 
-            embed = disnake.Embed(
+            embed = discord.Embed(
                 description=desc,
                 timestamp=poll_embed.timestamp,
-                color=disnake.Color.gold(),
+                color=discord.Color.gold(),
             )
 
             for i, option in enumerate(options):
@@ -186,5 +185,6 @@ class Polls(commands.Cog):
         return await ctx.send("Please provide the message ID/link for a valid poll")
 
 
-def setup(bot):
-    bot.add_cog(Polls(bot))
+async def setup(bot):
+    await bot.add_cog(Polls(bot))
+

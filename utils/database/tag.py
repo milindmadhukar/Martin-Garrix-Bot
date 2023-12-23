@@ -1,4 +1,4 @@
-from disnake.ext import commands
+from discord.ext import commands
 
 __all__ = ("Tag",)
 

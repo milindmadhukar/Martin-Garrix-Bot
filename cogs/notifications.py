@@ -1,7 +1,7 @@
 import traceback
 
-import disnake
-from disnake.ext import commands, tasks
+import discord
+from discord.ext import commands, tasks
 import asyncio
 import os
 
@@ -38,6 +38,7 @@ class Notifications(commands.Cog):
             subreddit = await self.reddit.subreddit("Martingarrix")
             new_post = subreddit.new(limit=5)
             async for post in new_post:
+                await post.load()
                 try:
                     await self.bot.database.execute(
                         "INSERT INTO reddit_posts(post_id) VALUES ($1)", post.id
@@ -49,10 +50,10 @@ class Notifications(commands.Cog):
                     return
                     # TODO: Send to error channel
 
-                embed = disnake.Embed(
+                embed = discord.Embed(
                     title=post.title,
                     url=f"https://reddit.com{post.permalink}",
-                    color=disnake.Color.orange(),
+                    color=discord.Color.orange(),
                 )
                 if post.selftext:
                     embed.add_field(name="Content", value=post.selftext, inline=False)
@@ -117,5 +118,6 @@ class Notifications(commands.Cog):
             pass
 
 
-def setup(bot):
-    bot.add_cog(Notifications(bot))
+async def setup(bot):
+    await bot.add_cog(Notifications(bot))
+

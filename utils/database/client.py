@@ -1,7 +1,7 @@
 import asyncio
 
 import asyncpg
-from disnake.ext import commands
+from discord.ext import commands
 
 from .message import Message
 from .tag import Tag

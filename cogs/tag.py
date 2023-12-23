@@ -1,5 +1,5 @@
-from disnake.ext import commands
-import disnake
+from discord.ext import commands
+import discord
 import asyncio
 
 from utils.database.tag import Tag
@@ -43,7 +43,7 @@ class TagCommands(commands.Cog, name="Tags"):
         author = self.bot.get_user(tag.creator_id)
         author = (
             str(author)
-            if isinstance(author, disnake.User)
+            if isinstance(author, discord.User)
             else f"(ID: {tag.creator_id})"
         )
         # TODO: Change to a nice embed
@@ -113,7 +113,7 @@ class TagCommands(commands.Cog, name="Tags"):
 
         try:
             await ctx.author.send(f"***{len(records)} tags found on this server.***")
-        except disnake.Forbidden:
+        except discord.Forbidden:
             ctx.command.reset_cooldown(ctx)
             return await ctx.send(
                 "Could not DM you. Please open DMs for this server and run the command again",
@@ -232,5 +232,6 @@ class TagCommands(commands.Cog, name="Tags"):
         return
 
 
-def setup(bot):
-    bot.add_cog(TagCommands(bot=bot))
+async def setup(bot):
+    await bot.add_cog(TagCommands(bot))
+
