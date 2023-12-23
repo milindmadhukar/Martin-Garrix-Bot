@@ -1,10 +1,11 @@
 import datetime
 import os
-import pkgutil
 import sys
 import traceback
 import typing
 from typing import Optional
+import logging
+import logging.handlers
 
 import discord
 import dotenv
@@ -48,6 +49,22 @@ class MartinGarrixBot(commands.Bot):
         self.start_time = discord.utils.utcnow()
         self.bot_config = Config
         self.database: typing.Optional[Database] = None
+
+        logger = logging.getLogger('discord')
+        logger.setLevel(logging.DEBUG)
+        logging.getLogger('discord.http').setLevel(logging.INFO)
+
+        handler = logging.handlers.RotatingFileHandler(
+            filename='bot.log',
+            encoding='utf-8',
+            maxBytes=32 * 1024 * 1024,  # 32 MiB
+            backupCount=5,  # Rotate through 5 files
+        )
+        dt_fmt = '%Y-%m-%d %H:%M:%S'
+        formatter = logging.Formatter('[{asctime}] [{levelname:<8}] {name}: {message}', dt_fmt, style='{')
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+        logger.addHandler(logging.StreamHandler())
 
     def set_configuration_attributes(self):
         self.guild = self.get_guild(self.bot_config.GUILD_ID.value)
@@ -153,7 +170,7 @@ class MartinGarrixBot(commands.Bot):
             except Exception as e:
                 traceback.print_exception(type(e), e, e.__traceback__, file=sys.stderr)
 
-        # await self.load_extension("jishaku")
+        await self.load_extension("jishaku")
         print(f"Loaded extension 'jishaku'")
 
         await self.tree.sync()

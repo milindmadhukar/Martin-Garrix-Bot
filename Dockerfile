@@ -4,8 +4,7 @@ FROM python:3.11-alpine3.18
 
 # Set working directory
 
-RUN apk add --update alpine-sdk
-RUN apk add gcc
+RUN apk add build-base linux-headers
 
 WORKDIR /usr/src/app
 
@@ -14,10 +13,10 @@ COPY requirements.txt .
 COPY .env .
 
 # Install dependencies
-RUN pip install -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy source code
 COPY . .
 
 # Run bot
-CMD ["python", "main.py"]
+CMD ["python", "-u", "main.py"]

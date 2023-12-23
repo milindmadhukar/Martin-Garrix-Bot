@@ -43,7 +43,7 @@ class SingAlong(commands.Cog):
 
         self.current_song_name = song["name"]
         self.current_song_alias = song["alias"]
-        self.current_song_lyrics = song["lyrics"].split("\n")
+        self.current_song_lyrics = song["lyrics"].strip().split("\n")
         self.line_count = len(song["lyrics"].split("\n"))
         self.current_line = 0
 

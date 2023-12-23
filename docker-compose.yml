@@ -1,0 +1,7 @@
+version: "3.9"
+services:
+  garrixbot:
+    build: .
+    volumes:
+      - ./bot.log:/usr/src/app/bot.log
+    network_mode: host
